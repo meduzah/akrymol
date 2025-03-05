@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Wyszukiwarka{% endblock %}
+
+{% block content %}
+<form method="GET" action="/search">
+  <div class="mb-3">
+    <label for="location" class="form-label">Lokalizacja</label>
+    <input type="text" class="form-control" id="location" name="location">
+  </div>
+  <div class="mb-3">
+    <label for="experience" class="form-label">Doświadczenie</label>
+    <input type="text" class="form-control" id="experience" name="experience">
+  </div>
+  <button type="submit" class="btn btn-primary">Szukaj</button>
+</form>
+
+<h2>Wyniki wyszukiwania</h2>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Imię i nazwisko</th>
+      <th>Doświadczenie</th>
+      <th>Lokalizacja</th>
+      <th>Gotowość do podróży</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for pm in results %}
+    <tr>
+      <td>{{ pm[0] }}</td>
+      <td>{{ pm[1] }}</td>
+      <td>{{ pm[2] }}</td>
+      <td>{{ pm[3] }}</td>
+      <td>{{ 'Tak' if pm[4] else 'Nie' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

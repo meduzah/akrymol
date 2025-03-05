@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Strona główna{% endblock %}
+
+{% block content %}
+
+<h1>Witaj w aplikacji Project Manager!</h1>
+<p>Liczba PM-ów w systemie: {{ total_pm }}</p>
+<p>Liczba PM-ów gotowych do podróży: {{ ready_to_travel }}</p>
+<a href="/pm-list" class="btn btn-primary">Zobacz listę PM-ów</a>
+
+{% endblock %}

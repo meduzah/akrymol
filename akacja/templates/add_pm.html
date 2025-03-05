@@ -1,0 +1,1320 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Dodaj Project Managera</h2>
+
+    <!-- Formularz -->
+    <form method="POST" action="{{ url_for('add_pm') }}">
+
+        <!-- 1. Imię i nazwisko -->
+        <div class="mb-3">
+            <label for="name" class="form-label">Imię</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+        <div class="mb-3">
+            <label for="surname" class="form-label">Nazwisko</label>
+            <input type="text" class="form-control" id="surname" name="surname" required>
+        </div>
+
+        <!-- 2. Doświadczenie jako PM (suwak) -->
+        <label for="experience_pm">Doświadczenie jako PM (w latach)</label>
+        <input type="range" class="form-range"
+               id="experience_pm"
+               name="experience_pm"
+               min="0" max="50" step="1"
+               value="5"
+               oninput="document.getElementById('expValue').textContent = this.value">
+        <div>
+          Wybrane: <span id="expValue">5</span> lat
+        </div>
+
+        <!-- 3. Doświadczenie jako PM w IT (suwak) -->
+        <label for="experience_pm_it">Doświadczenie jako PM w IT (w latach)</label>
+        <input type="range" class="form-range"
+               id="experience_pm_it"
+               name="experience_pm_it"
+               min="0" max="50" step="1"
+               value="5"
+               oninput="document.getElementById('expValueIT').textContent = this.value">
+        <div>
+          Wybrane: <span id="expValueIT">5</span> lat
+        </div>
+
+        <!-- KONTYNENT -->
+        <div class="mb-3">
+            <label for="continentSelect" class="form-label">Kontynent</label>
+            <select id="continentSelect" class="form-select" name="continent" onchange="updateCountries()" required>
+                <option value="">-- Wybierz kontynent --</option>
+            </select>
+        </div>
+
+        <!-- PAŃSTWO (zależne od kontynentu) -->
+        <div class="mb-3">
+            <label for="countrySelect" class="form-label">Państwo</label>
+            <select id="countrySelect" class="form-select" name="country" onchange="updateRegions()" required>
+                <option value="">-- Najpierw wybierz kontynent --</option>
+            </select>
+        </div>
+
+        <!-- REGION / WOJEWÓDZTWO (zależne od kraju) -->
+        <div class="mb-3">
+            <label for="regionSelect" class="form-label">Region / Województwo</label>
+            <select id="regionSelect" class="form-select" name="region">
+                <option value="">-- Najpierw wybierz państwo --</option>
+            </select>
+        </div>
+
+        <!-- Gotowość do podróży -->
+        <div class="form-check mb-3">
+            <input type="checkbox" class="form-check-input" id="travel_ready" name="travel_ready">
+            <label class="form-check-label" for="travel_ready">Możliwość zmiany miejsca zamiszkania</label>
+        </div>
+
+        <!-- Poziom seniority -->
+        <div class="mb-3">
+            <label for="level_seniority" class="form-label">Level of seniority</label>
+            <select class="form-select" name="level_seniority" id="level_seniority" required>
+                <option value="">-- Wybierz poziom --</option>
+                <option value="Junior">Junior</option>
+                <option value="Mid">Mid</option>
+                <option value="Senior">Senior</option>
+            </select>
+        </div>
+
+ <!-- ukonczone studia -->
+        <div class="mb-3">
+            <label for="field_of_study" class="form-label">Ukończone studia</label>
+            <input type="text" class="form-control" id="field_of_study" name="field_of_study" placeholder="Nazwy kierunków i specjalizacji">
+        </div>
+
+
+        <!-- Wykształcenie techniczne (technical_ed) -->
+        <div class="mb-3">
+            <label class="form-label d-block">Wykształcenie techniczne</label>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="technical_ed" id="technical_ed_yes" value="tak">
+                <label class="form-check-label" for="technical_ed_yes">Tak</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="technical_ed" id="technical_ed_no" value="nie">
+                <label class="form-check-label" for="technical_ed_no">Nie</label>
+            </div>
+        </div>
+
+       <!-- Sekcja do wyboru języków i poziomów -->
+<div class="mb-3">
+  <label class="form-label d-block">Znajomość języków</label>
+
+  <!-- Kontener, w którym będą pojawiać się wiersze: (język, poziom) -->
+  <div id="languagesContainer"></div>
+
+  <!-- Przycisk "Dodaj język" -->
+  <button type="button" class="btn btn-outline-primary mt-2" onclick="addLanguageRow()">
+    Dodaj język
+  </button>
+</div>
+
+
+
+      <!-- Metodologie (checkboxy) -->
+<div class="mb-3">
+    <label class="form-label d-block">Metodologie</label>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="methodologies" value="Scrum" id="met_scrum">
+        <label class="form-check-label" for="met_scrum">Scrum</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="methodologies" value="Kanban" id="met_kanban">
+        <label class="form-check-label" for="met_kanban">Kanban</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="methodologies" value="Waterfall" id="met_waterfall">
+        <label class="form-check-label" for="met_waterfall">Waterfall</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="methodologies" value="Prince2" id="met_prince2">
+        <label class="form-check-label" for="met_prince2">Prince2</label>
+    </div>
+    <!-- Dodane metodologie -->
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="methodologies" value="Lean" id="met_lean">
+        <label class="form-check-label" for="met_lean">Lean</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="methodologies" value="PMBOK" id="met_pmbok">
+        <label class="form-check-label" for="met_pmbok">PMBOK (PMI)</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="methodologies" value="Six Sigma" id="met_sixsigma">
+        <label class="form-check-label" for="met_sixsigma">Six Sigma</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="methodologies" value="XP" id="met_xp">
+        <label class="form-check-label" for="met_xp">XP (Extreme Programming)</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="methodologies" value="SAFe" id="met_safe">
+        <label class="form-check-label" for="met_safe">SAFe</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="methodologies" value="LeSS" id="met_less">
+        <label class="form-check-label" for="met_less">LeSS</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="methodologies" value="DSDM" id="met_dsdm">
+        <label class="form-check-label" for="met_dsdm">DSDM</label>
+    </div>
+</div>
+
+
+        <!-- Narzędzia (tools) -->
+<div class="mb-3">
+    <label class="form-label d-block">Narzędzia (tools)</label>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="Jira" id="tool_jira">
+        <label class="form-check-label" for="tool_jira">Jira</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="MS Project" id="tool_msproject">
+        <label class="form-check-label" for="tool_msproject">MS Project</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="Confluence" id="tool_confluence">
+        <label class="form-check-label" for="tool_confluence">Confluence</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="Asana" id="tool_asana">
+        <label class="form-check-label" for="tool_asana">Asana</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="Trello" id="tool_trello">
+        <label class="form-check-label" for="tool_trello">Trello</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="ClickUp" id="tool_clickup">
+        <label class="form-check-label" for="tool_clickup">ClickUp</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="Monday.com" id="tool_monday">
+        <label class="form-check-label" for="tool_monday">Monday.com</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="Wrike" id="tool_wrike">
+        <label class="form-check-label" for="tool_wrike">Wrike</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="Notion" id="tool_notion">
+        <label class="form-check-label" for="tool_notion">Notion</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="Slack" id="tool_slack">
+        <label class="form-check-label" for="tool_slack">Slack</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="Microsoft Teams" id="tool_teams">
+        <label class="form-check-label" for="tool_teams">Microsoft Teams</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="Zoom" id="tool_zoom">
+        <label class="form-check-label" for="tool_zoom">Zoom</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="Google Meet" id="tool_meet">
+        <label class="form-check-label" for="tool_meet">Google Meet</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="Miro" id="tool_miro">
+        <label class="form-check-label" for="tool_miro">Miro</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="Google Workspace" id="tool_gworkspace">
+        <label class="form-check-label" for="tool_gworkspace">Google Workspace</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="Microsoft 365" id="tool_m365">
+        <label class="form-check-label" for="tool_m365">Microsoft 365</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="Airtable" id="tool_airtable">
+        <label class="form-check-label" for="tool_airtable">Airtable</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="Basecamp" id="tool_basecamp">
+        <label class="form-check-label" for="tool_basecamp">Basecamp</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="Smartsheet" id="tool_smartsheet">
+        <label class="form-check-label" for="tool_smartsheet">Smartsheet</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="Clockify" id="tool_clockify">
+        <label class="form-check-label" for="tool_clockify">Clockify</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="Toggl Track" id="tool_toggl">
+        <label class="form-check-label" for="tool_toggl">Toggl Track</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="Harvest" id="tool_harvest">
+        <label class="form-check-label" for="tool_harvest">Harvest</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="Azure DevOps" id="tool_azuredevops">
+        <label class="form-check-label" for="tool_azuredevops">Azure DevOps</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="GitHub Projects" id="tool_githubprojects">
+        <label class="form-check-label" for="tool_githubprojects">GitHub Projects</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="tools" value="Kanbanize" id="tool_kanbanize">
+        <label class="form-check-label" for="tool_kanbanize">Kanbanize</label>
+    </div>
+</div>
+
+  <div class="mb-3">
+            <label for="certficates" class="form-label">Certyfikaty</label>
+            <textarea class="form-control" id="certficates" name="certificates" rows="2"></textarea>
+        </div>
+        <!-- PMO skills -->
+        <div class="mb-3">
+            <label for="additional_info" class="form-label">Dodatkowe informacje</label>
+            <textarea class="form-control" id="additional_info" name="additional_info" rows="2"></textarea>
+        </div>
+
+
+
+        <!-- chęć do pracy zdalnej -->
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" name="stacjonarnie" id="tryb_pracy">
+            <label class="form-check-label" for="tryb_pracy">Możliwość pracy wyłącznie stacjonarnie</label>
+        </div>
+
+        <!-- Tryb pracy (Remote / On-site / Hybrid) -->
+        <div class="mb-3">
+            <label for="remote_on_site" class="form-label">Preferowany tryb pracy</label>
+            <select class="form-select" name="remote_on_site" id="remote_on_site" required>
+                <option value="">-- Wybierz tryb --</option>
+                <option value="Remote">Remote (zdalnie)</option>
+                <option value="On-site">On-site (na miejscu)</option>
+                <option value="Hybrid">Hybrid (hybrydowo)</option>
+            </select>
+        </div>
+
+         <div class="mb-3">
+            <label for="cv_file" class="form-label">Prześlij CV</label>
+            <!-- accept=".pdf,.doc,.docx" aby ograniczyć typy plików -->
+            <input type="file" class="form-control" id="cv_file" name="cv_file" accept=".pdf,.doc,.docx">
+        </div>
+
+        <!-- Przycisk 'Dodaj' -->
+        <button type="submit" class="btn btn-success mt-3">Dodaj</button>
+
+    </form>
+</div>
+
+<!-- Skrypt JavaScript z definicją 3-poziomowego cascading dropdown -->
+<script>
+    // 1. Struktura: CONTINENT -> obiekt KRAJE -> tablica REGIONÓW lub null
+    // Przykładowo:
+    const continentsData = {
+        "Europa": {
+            // 1. Poprawione i uzupełnione kraje już istniejące w obiekcie:
+
+            "Polska": [
+                "Dolnośląskie",
+                "Kujawsko-Pomorskie",
+                "Lubelskie",
+                "Lubuskie",
+                "Łódzkie",
+                "Małopolskie",
+                "Mazowieckie",
+                "Opolskie",
+                "Podkarpackie",
+                "Podlaskie",
+                "Pomorskie",
+                "Śląskie",
+                "Świętokrzyskie",
+                "Warmińsko-Mazurskie",
+                "Wielkopolskie",
+                "Zachodniopomorskie"
+            ],
+            "Niemcy": [
+                "Badenia-Wirtembergia",
+                "Bawaria",
+                "Berlin",
+                "Brandenburgia",
+                "Brema",
+                "Dolna Saksonia",
+                "Hamburg",
+                "Hesja",
+                "Meklemburgia-Pomorze Przednie",
+                "Nadrenia Północna-Westfalia",
+                "Nadrenia-Palatynat",
+                "Saara",
+                "Saksonia",
+                "Saksonia-Anhalt",
+                "Szlezwik-Holsztyn",
+                "Turyngia"
+            ],
+            "Francja": [
+                "Auvergne-Rhône-Alpes",
+                "Bourgogne-Franche-Comté",
+                "Bretania",
+                "Centre-Val de Loire",
+                "Grand Est",
+                "Hauts-de-France",
+                "Île-de-France",
+                "Normandia",
+                "Nowa Akwitania",
+                "Oksytania",
+                "Korsyka",
+                "Kraj Loary",
+                "Prowansja-Alpy-Lazurowe Wybrzeże"
+            ],
+            "Wielka Brytania": [
+                "Anglia",
+                "Szkocja",
+                "Walia",
+                "Irlandia Północna"
+            ],
+            "Hiszpania": [
+                "Andaluzja",
+                "Aragonia",
+                "Asturia",
+                "Baleary",
+                "Kantabria",
+                "Kastylia-La Mancha",
+                "Kastylia i León",
+                "Katalonia",
+                "Estremadura",
+                "Galicja",
+                "Madryt",
+                "Murcja",
+                "Nawarra",
+                "La Rioja",
+                "Kraj Basków",
+                "Walencja",
+                "Wyspy Kanaryjskie",
+                "Ceuta",
+                "Melilla"
+            ],
+
+            // 2. Pozostałe kraje Europy (w porządku alfabetycznym):
+
+            "Albania": [
+                "Berat",
+                "Dibër",
+                "Durrës",
+                "Elbasan",
+                "Fier",
+                "Gjirokastër",
+                "Korçë",
+                "Kukës",
+                "Lezhë",
+                "Shkodër",
+                "Tirana",
+                "Vlorë"
+            ],
+            "Andora": [
+                "Canillo",
+                "Encamp",
+                "Escaldes-Engordany",
+                "Andora la Vella",
+                "La Massana",
+                "Ordino",
+                "Sant Julià de Lòria"
+            ],
+            "Austria": [
+                "Burgenland",
+                "Karyntia",
+                "Dolna Austria",
+                "Górna Austria",
+                "Salzburg",
+                "Styria",
+                "Tyrol",
+                "Vorarlberg",
+                "Wiedeń"
+            ],
+            "Belgia": [
+                "Region Stołeczny Brukseli",
+                "Flandria",
+                "Walonia"
+                // Uwaga: Belgia dzieli się też na 10 prowincji we Flandrii i Walonii,
+                // ale często upraszcza się to do 3 głównych regionów.
+            ],
+            "Białoruś": [
+                "Obwód brzeski",
+                "Obwód grodzieński",
+                "Obwód homelski",
+                "Obwód mohylewski",
+                "Obwód miński",
+                "Obwód witebski",
+                "Miasto Mińsk"
+            ],
+            "Bośnia i Hercegowina": [
+                "Federacja Bośni i Hercegowiny",
+                "Republika Serbska",
+                "Dystrykt Brczko"
+            ],
+            "Bułgaria": [
+                "Obwód Błagojewgrad",
+                "Obwód Burgas",
+                "Obwód Dobricz",
+                "Obwód Gabrowo",
+                "Obwód Chaskowo",
+                "Obwód Kiustendił",
+                "Obwód Kyrdżali",
+                "Obwód Łowecz",
+                "Obwód Montana",
+                "Obwód Pazardżik",
+                "Obwód Pernik",
+                "Obwód Płowdiw",
+                "Obwód Plewen",
+                "Obwód Razgrad",
+                "Obwód Ruse",
+                "Obwód Silistra",
+                "Obwód Sliwen",
+                "Obwód Smolan",
+                "Obwód sofijski (obszar wiejski)",
+                "Obwód Sofia (miasto)",
+                "Obwód Stara Zagora",
+                "Obwód Szumen",
+                "Obwód Tyrgowiszte",
+                "Obwód Warna",
+                "Obwód Weliko Tyrnowo",
+                "Obwód Widyń",
+                "Obwód Wraca",
+                "Obwód Jamboł"
+            ],
+            "Chorwacja": [
+                "Żupania bielowarsko-bilogorska",
+                "Żupania brodzko-posawska",
+                "Żupania dubrownicko-neretwiańska",
+                "Żupania istryjska",
+                "Żupania karlowacka",
+                "Żupania krapińsko-zagorska",
+                "Żupania licko-seńska",
+                "Żupania medzimurska",
+                "Żupania osijecko-barańska",
+                "Żupania požeško-slawońska",
+                "Żupania primorsko-gorska",
+                "Żupania sisacko-moslawińska",
+                "Żupania szybenicko-knińska",
+                "Żupania splitsko-dalmatyńska",
+                "Żupania varażdińska",
+                "Żupania virowiticko-podrawska",
+                "Żupania vukowarsko-srijemska",
+                "Żupania zadarska",
+                "Żupania zagrebačka",
+                "Miasto Zagrzeb (stolica)"
+            ],
+            "Cypr": [
+                "Dystrykt Famagusta",
+                "Dystrykt Kirenia",
+                "Dystrykt Larnaka",
+                "Dystrykt Limassol",
+                "Dystrykt Nikozja",
+                "Dystrykt Pafos"
+            ],
+            "Czarnogóra": [
+                "Podgorica",
+                "Nikšić",
+                "Bijelo Polje",
+                "Pljevlja",
+                "Bar",
+                "Herceg Novi",
+                "Berane",
+                "Budva",
+                "Kotor",
+                "Tivat",
+                "Ulcinj",
+                "Cetinje",
+                // ... i pozostałe gminy
+            ],
+            "Czechy": [
+                "Kraj środkowoczeski",
+                "Kraj Południowoczeski",
+                "Kraj Wysoczyna",
+                "Kraj Południowomorawski",
+                "Kraj karlowarski",
+                "Kraj hradecki",
+                "Kraj liberecki",
+                "Kraj ołomuniecki",
+                "Kraj morawsko-śląski",
+                "Kraj pardubicki",
+                "Kraj plzeński",
+                "Kraj ustecki",
+                "Kraj zliński",
+                "Praga (miasto wydzielone)"
+            ],
+            "Dania": [
+                "Region Stołeczny (Hovedstaden)",
+                "Region Zelandia (Sjælland)",
+                "Region Południowa Dania (Syddanmark)",
+                "Region Jutlandia Środkowa (Midtjylland)",
+                "Region Jutlandia Północna (Nordjylland)"
+            ],
+            "Estonia": [
+                "Harju",
+                "Hiiu",
+                "Ida Viru",
+                "Järva",
+                "Jõgeva",
+                "Lääne",
+                "Lääne Viru",
+                "Pärnu",
+                "Põlva",
+                "Rapla",
+                "Saare",
+                "Tartu",
+                "Valga",
+                "Viljandi",
+                "Võru"
+            ],
+            "Finlandia": [
+                "Uusimaa",
+                "Finlandia Południowo-Zachodnia",
+                "Kanta-Häme",
+                "Pirkanmaa",
+                "Päijät-Häme",
+                "Kymenlaakso",
+                "Południowa Karelia",
+                "Pohjois-Savo",
+                "Pohjois-Karjala",
+                "Keski-Suomi",
+                "Etelä-Savo",
+                "Etelä-Pohjanmaa",
+                "Pohjanmaa",
+                "Keski-Pohjanmaa",
+                "Pohjois-Pohjanmaa",
+                "Kainuu",
+                "Laponia",
+                "Wyspy Alandzkie"
+            ],
+            "Grecja": [
+                "Attyka",
+                "Grecja Środkowa",
+                "Peloponez",
+                "Tesalia",
+                "Epir",
+                "Macedonia Środkowa",
+                "Macedonia Zachodnia",
+                "Macedonia Wschodnia i Tracja",
+                "Wyspy Egejskie Północne",
+                "Wyspy Egejskie Południowe",
+                "Kreta",
+                "Wyspy Jońskie",
+                "Grecja Zachodnia",
+                "Góra Athos (Autonomiczny Region)"
+            ],
+            "Holandia (Niderlandy)": [
+                "Brabancja Północna",
+                "Drenthe",
+                "Flevoland",
+                "Fryzja",
+                "Gelderland",
+                "Groningen",
+                "Holandia Południowa",
+                "Holandia Północna",
+                "Limburgia",
+                "Overijssel",
+                "Utrecht",
+                "Zelandia"
+            ],
+            "Irlandia": [
+                "Leinster",
+                "Munster",
+                "Connacht",
+                "Ulster (część w granicach Republiki)"
+            ],
+            "Islandia": [
+                // Oficjalnie Islandia dzieli się na regiony bądź okręgi wyborcze,
+                // tu najpopularniejsze regiony:
+                "Region stołeczny (Höfuðborgarsvæði)",
+                "Sudurnes",
+                "Zachodnia Islandia (Vesturland)",
+                "Fiordy Zachodnie (Vestfirðir)",
+                "Północno-Zachodnia Islandia (Norðurland vestra)",
+                "Północno-Wschodnia Islandia (Norðurland eystra)",
+                "Wschodnia Islandia (Austurland)",
+                "Południowa Islandia (Suðurland)"
+            ],
+            "Kosowo": [
+                "Gnjilane",
+                "Kosowska Mitrowica",
+                "Peć",
+                "Prizren",
+                "Prisztina",
+                "Uroševac",
+                // Podział na 7 okręgów bywa różnie definiowany, powyżej najczęstszy.
+            ],
+            "Liechtenstein": [
+                "Balzers",
+                "Eschen",
+                "Gamprin",
+                "Mauren",
+                "Planken",
+                "Ruggell",
+                "Schaan",
+                "Schellenberg",
+                "Triesen",
+                "Triesenberg",
+                "Vaduz"
+            ],
+            "Litwa": [
+                // Podział na 10 okręgów (apskritis):
+                "Alytus",
+                "Kowno (Kaunas)",
+                "Kłajpeda",
+                "Mariampol",
+                "Poniewież (Panevėžys)",
+                "Szawle (Šiauliai)",
+                "Taurogi (Tauragė)",
+                "Telsze (Telšiai)",
+                "Wilno (Vilnius)",
+                "Utena"
+            ],
+            "Luksemburg": [
+                // Od 2015 zlikwidowano podział na 3 dystrykty,
+                // częściej wyróżnia się 12 kantonów. Przykładowo:
+                "Capellen",
+                "Clervaux",
+                "Diekirch",
+                "Echternach",
+                "Esch-sur-Alzette",
+                "Grevenmacher",
+                "Mersch",
+                "Redange",
+                "Remich",
+                "Vianden",
+                "Wiltz",
+                "Luxembourg (miasto)"
+            ],
+            "Łotwa": [
+                // Podstawowy podział na 5 regionów planistycznych:
+                "Region Ryga",
+                "Kurlandia (Kurzeme)",
+                "Ziemia Semigalska (Zemgale)",
+                "Inflanty (Latgale)",
+                "Vidzeme (środkowa Łotwa)"
+                // Oficjalnie jest też podział na liczne gminy i miasta.
+            ],
+            "Macedonia Północna": [
+                "Skopje",
+                "Północno-wschodni",
+                "Południowo-zachodni",
+                "Południowo-wschodni",
+                "Pelagonia",
+                "Polog",
+                "Vardar",
+                "Wschodni"
+            ],
+            "Malta": [
+                // Najczęściej wyróżnia się 5 regionów:
+                "Południowy Region Wewnętrzny",
+                "Południowy Region Zewnętrzny",
+                "Północny Region Wewnętrzny",
+                "Północny Region Zewnętrzny",
+                "Region Gozo"
+            ],
+            "Mołdawia": [
+                // Uproszczony podział (najczęstsze jednostki to rejony):
+                "Rejon Anenii Noi",
+                "Rejon Cahul",
+                "Rejon Călărași",
+                "Rejon Cimișlia",
+                "Rejon Criuleni",
+                "Rejon Edineț",
+                // ... (pozostałe rejony),
+                "Gagauzja (region autonomiczny)",
+                "Naddniestrze (region separatystyczny)",
+                "Kiszyniów (stolica)"
+            ],
+            "Monako": null, // Kraj-miasto, brak wewnętrznego podziału
+            "Norwegia": [
+                "Viken",
+                "Innlandet",
+                "Agder",
+                "Rogaland",
+                "Vestland",
+                "Vestfold og Telemark",
+                "Trøndelag",
+                "Nordland",
+                "Troms og Finnmark",
+                "Oslo (miasto wydzielone)",
+                // Uwaga: Podział zmieniony w 2020 r., stąd może się różnić w starszych źródłach
+            ],
+            "Portugalia": [
+                "Dystrykt Lizbona",
+                "Dystrykt Porto",
+                "Dystrykt Aveiro",
+                "Dystrykt Braga",
+                "Dystrykt Coimbra",
+                "Dystrykt Évora",
+                "Dystrykt Faro",
+                "Dystrykt Guarda",
+                "Dystrykt Leiria",
+                "Dystrykt Portalegre",
+                "Dystrykt Santarém",
+                "Dystrykt Setúbal",
+                "Dystrykt Viana do Castelo",
+                "Dystrykt Vila Real",
+                "Dystrykt Viseu",
+                "Dystrykt Bragança",
+                "Dystrykt Castelo Branco",
+                "Dystrykt Beja",
+                // regiony autonomiczne:
+                "Azory (region autonomiczny)",
+                "Madera (region autonomiczny)"
+            ],
+            "Rosja (część europejska)": null,
+            // pełne wypisanie podziału FR jest ogromne (republiki, kraje, obwody, okręgi, miasta wydzielone),
+            // więc pozostawione jako null/skrót.
+
+            "Rumunia": [
+                // Rumunia jest podzielona na 41 okręgów (județ) i Bukareszt. Poniżej kilka przykładowych:
+                "Okręg Alba",
+                "Okręg Arad",
+                "Okręg Argeș",
+                "Okręg Bacău",
+                "Okręg Bihor",
+                "Okręg Bistrița-Năsăud",
+                "Okręg Braszów",
+                "Okręg Konstanca",
+                // ...
+                "Bukareszt (stolica)"
+            ],
+            "San Marino": [
+                "Miasto San Marino",
+                "Acquaviva",
+                "Borgo Maggiore",
+                "Chiesanuova",
+                "Domagnano",
+                "Faetano",
+                "Fiorentino",
+                "Montegiardino",
+                "Serravalle"
+            ],
+            "Serbia": [
+                // Serbia dzieli się na okręgi, np.:
+                "Okręg Belgrad",
+                "Okręg Borski",
+                "Okręg Branicki",
+                "Okręg Kolubarski",
+                "Okręg Maczwa",
+                "Okręg Niszański",
+                // ...
+                "Kosowo i Metochia (sporny region)"
+            ],
+            "Słowacja": [
+                "Kraj bratysławski",
+                "Kraj trnawski",
+                "Kraj trenczyński",
+                "Kraj nitrzański",
+                "Kraj żyliński",
+                "Kraj bańskobystrzycki",
+                "Kraj preszowski",
+                "Kraj koszycki"
+            ],
+            "Słowenia": [
+                // Formalny podział: 12 tzw. regionów/statystycznych:
+                "Gorenjska",
+                "Goriška",
+                "Primorsko-Notranjska",
+                "Osrednjeslovenska",
+                "Obalno-Kraška",
+                "Jugovzhodna Slovenija",
+                "Posavska",
+                "Zasavska",
+                "Savinjska",
+                "Koroška",
+                "Podravska",
+                "Pomurska"
+            ],
+            "Szwajcaria": [
+                // 26 kantonów (przykłady):
+                "Aargau",
+                "Appenzell Ausserrhoden",
+                "Appenzell Innerrhoden",
+                "Bazylea-Miasto",
+                "Bazylea-Okręg",
+                "Berno",
+                "Fryburg",
+                "Genewa",
+                "Glarus",
+                "Gryzonia",
+                "Jura",
+                "Lucerna",
+                "Neuchâtel",
+                "Nidwalden",
+                "Obwalden",
+                "Schaffhausen",
+                "Schwyz",
+                "Solura",
+                "St. Gallen",
+                "Ticino",
+                "Turgowia",
+                "Uri",
+                "Valais",
+                "Vaud",
+                "Zug",
+                "Zurych"
+            ],
+            "Szwecja": [
+                "Stockholms län",
+                "Uppsala län",
+                "Södermanlands län",
+                "Östergötlands län",
+                "Jönköpings län",
+                "Kronobergs län",
+                "Kalmar län",
+                "Gotlands län",
+                "Blekinge län",
+                "Skåne län",
+                "Hallands län",
+                "Västra Götalands län",
+                "Värmlands län",
+                "Örebro län",
+                "Västmanlands län",
+                "Dalarnas län",
+                "Gävleborgs län",
+                "Västernorrlands län",
+                "Jämtlands län",
+                "Västerbottens län",
+                "Norrbottens län"
+            ],
+            "Turcja (część europejska)": null,
+            // Region Tracja Wschodnia (m.in. prowincja Stambuł, Tekirdağ, Edirne, Kırklareli),
+            // ale pełny podział na 81 prowincji obejmuje też część azjatycką.
+
+            "Ukraina": [
+                "Obwód charkowski",
+                "Obwód doniecki",
+                "Obwód dniepropetrowski",
+                "Obwód kijowski",
+                "Obwód lwowski",
+                "Obwód odeski",
+                "Obwód zakarpacki",
+                "Obwód wołyński",
+                // ... (razem 24 obwody, 1 republika autonomiczna Krym i 2 miasta o statusie obwodu: Kijów, Sewastopol)
+            ],
+            "Watykan": null, // państwo-miasto, brak podziału
+            "Węgry": [
+                "Komitat Bács-Kiskun",
+                "Komitat Baranya",
+                "Komitat Békés",
+                "Komitat Borsod-Abaúj-Zemplén",
+                "Komitat Csongrád-Csanád",
+                "Komitat Fejér",
+                "Komitat Győr-Moson-Sopron",
+                "Komitat Hajdú-Bihar",
+                "Komitat Heves",
+                "Komitat Jász-Nagykun-Szolnok",
+                "Komitat Komárom-Esztergom",
+                "Komitat Nógrád",
+                "Komitat Pest",
+                "Komitat Somogy",
+                "Komitat Szabolcs-Szatmár-Bereg",
+                "Komitat Tolna",
+                "Komitat Vas",
+                "Komitat Veszprém",
+                "Komitat Zala",
+                "Budapeszt (miasto wydzielone)"
+            ],
+            "Włochy": [
+                "Abruzja",
+                "Basilicata",
+                "Kalabria",
+                "Kampania",
+                "Emilia-Romania",
+                "Friuli-Wenecja Julijska",
+                "Lacjum",
+                "Liguria",
+                "Lombardia",
+                "Marche",
+                "Molise",
+                "Piemont",
+                "Apulia",
+                "Sardynia (region autonomiczny)",
+                "Sycylia (region autonomiczny)",
+                "Toskania",
+                "Trydent-Górna Adyga (region autonomiczny)",
+                "Umbria",
+                "Dolina Aosty (region autonomiczny)",
+                "Wenecja Euganejska"
+            ]
+        },
+
+        // Pozostawiamy dane z pozostałych kontynentów,
+        // rozszerzając tylko część dla Europy, zgodnie z prośbą.
+
+        "Ameryka Północna": {
+            "USA": ["California", "Texas", "New York", "Florida"],
+            "Kanada": null,
+            "Meksyk": null
+        },
+        "Azja": {
+            "Chiny": null,
+            "Japonia": null,
+            "Indie": null
+        }
+    };
+
+    // 2. Wypełniamy listę kontynentów przy starcie
+    function populateContinents() {
+        const continentSelect = document.getElementById('continentSelect');
+        for (const continentName in continentsData) {
+            const opt = document.createElement('option');
+            opt.value = continentName;
+            opt.textContent = continentName;
+            continentSelect.appendChild(opt);
+        }
+    }
+
+    // 3. Po wybraniu kontynentu, ładujemy kraje w <select id="countrySelect">
+    function updateCountries() {
+        const continentSelect = document.getElementById('continentSelect');
+        const selectedContinent = continentSelect.value;
+
+        const countrySelect = document.getElementById('countrySelect');
+        countrySelect.innerHTML = ""; // czyścimy stare option
+
+        // Czyścimy regiony
+        const regionSelect = document.getElementById('regionSelect');
+        regionSelect.innerHTML = "";
+        regionSelect.appendChild(new Option("-- Najpierw wybierz państwo --", ""));
+
+        if (!selectedContinent) {
+            countrySelect.appendChild(new Option("-- Najpierw wybierz kontynent --", ""));
+            return;
+        }
+
+        // Mamy wybrany kontynent - wczytujemy jego kraje
+        const countriesObj = continentsData[selectedContinent];
+        countrySelect.appendChild(new Option("-- Wybierz państwo --", ""));
+
+        for (const countryName in countriesObj) {
+            const opt = document.createElement('option');
+            opt.value = countryName;
+            opt.textContent = countryName;
+            countrySelect.appendChild(opt);
+        }
+    }
+
+    // 4. Po wybraniu kraju, wypełniamy listę regionów (o ile kraj ma regiony != null)
+    function updateRegions() {
+        const continentSelect = document.getElementById('continentSelect');
+        const selectedContinent = continentSelect.value;
+
+        const countrySelect = document.getElementById('countrySelect');
+        const selectedCountry = countrySelect.value;
+
+        const regionSelect = document.getElementById('regionSelect');
+        regionSelect.innerHTML = "";
+
+        if (!selectedCountry) {
+            regionSelect.appendChild(new Option("-- Najpierw wybierz państwo --", ""));
+            return;
+        }
+
+        const countriesObj = continentsData[selectedContinent];
+        const regionArray = countriesObj[selectedCountry]; // np. ["Mazowieckie", "Małopolskie"] lub null
+
+        if (regionArray && Array.isArray(regionArray)) {
+            regionSelect.appendChild(new Option("-- Wybierz region --", ""));
+            regionArray.forEach(region => {
+                const opt = document.createElement('option');
+                opt.value = region;
+                opt.textContent = region;
+                regionSelect.appendChild(opt);
+            });
+        } else {
+            // Nie ma regionów dla danego kraju
+            regionSelect.appendChild(new Option("Brak regionów do wyboru", ""));
+        }
+    }
+
+    // 5. Gdy załaduje się strona, wypełniamy listę kontynentów
+    document.addEventListener('DOMContentLoaded', () => {
+        populateContinents();
+    });
+
+
+
+        // Lista języków – przykładowo 5, ale możesz dopisać wszystkie ~200
+        const ALL_LANGUAGES = [
+        "Angielski",
+"Chiński, Mandaryński",
+"Hindi",
+"Hiszpański",
+"Francuski",
+"Arabski, Standardowy",
+"Bengalski",
+"Rosyjski",
+"Portugalski",
+"Indonezyjski",
+"Urdu",
+"Niemiecki, Standardowy",
+"Japoński",
+"Suahili",
+"Marathi",
+"Telugu",
+"Pendżabski, Zachodni",
+"Chiński, Wu",
+"Tamil",
+"Turecki",
+"Koreański",
+"Wietnamski",
+"Chiński, Yue",
+"Jawajski",
+"Włoski",
+"Arabski, Egipski Mówiony",
+"Hausa",
+"Tajski",
+"Gudżarati",
+"Kannada",
+"Perski, Irański",
+"Bhojpuri",
+"Chiński, Min Nan",
+"Chiński, Hakka",
+"Chiński, Jinyu",
+"Filipiński",
+"Birmański",
+"Polski",
+"Joruba",
+"Odia",
+"Malajalam",
+"Chiński, Xiang",
+"Maithili",
+"Ukraiński",
+"Arabski, Marokański Mówiony",
+"Pendżabski, Wschodni",
+"Sunda",
+"Arabski, Algierski Mówiony",
+"Arabski, Sudański Mówiony",
+"Pidżyn, Nigeryjski",
+"Zulu",
+"Igbo",
+"Amharski",
+"Uzbecki, Północny",
+"Sindhi",
+"Arabski, Lewantyński Północny Mówiony",
+"Nepalski",
+"Rumuński",
+"Tagalog",
+"Holenderski",
+"Arabski, Sa'idzi Mówiony",
+"Chiński, Gan",
+"Paszto, Północny",
+"Magahi",
+"Saraiki",
+"Xhosa",
+"Malajski",
+"Khmer",
+"Afrikaans",
+"Syngaleski",
+"Somalijski",
+"Chhattisgarhi",
+"Cebuano",
+"Arabski, Mezopotamski Mówiony",
+"Asamski",
+"Tajski, Północno-Wschodni",
+"Kurdyjski, Północny",
+"Arabski, Hidżazyjski Mówiony",
+"Fulfulde, Nigeryjski",
+"Bawarski",
+"Bamanankan",
+"Azerski, Południowy",
+"Sotho, Północny",
+"Setswana",
+"Sotho, Południowy",
+"Czeski",
+"Grecki",
+"Chittagonian",
+"Kazachski",
+"Szwedzki",
+"Deccan",
+"Węgierski",
+"Jula",
+"Sadri",
+"Kiniaruanda",
+"Pidżyn, Kameruński",
+"Sylheti",
+"Arabski, Lewantyński Południowy Mówiony",
+"Arabski, Tunezyjski Mówiony",
+"Arabski, Sanański Mówiony",
+"Suahili, Kongo",
+"Chiński, Min Bei",
+"Paszto, Południowy",
+"Rangpuri",
+"Rundi",
+"Arabski, Ta'izzi-Adeni Mówiony",
+"Ujgurski",
+"Chiński, Min Dong",
+"Koongo",
+"Ibibio",
+"Haryanvi",
+"Arabski, Zatoki Perskiej Mówiony",
+"Chichewa",
+"Kanauji",
+"Hebrajski",
+"Akan",
+"Azerski, Północny",
+"Kataloński",
+"Szona",
+"Dari",
+"Oromo, Zachodni Środkowy",
+"Tsonga",
+"Hassaniyya",
+"Serbski",
+"Arabski, Mezopotamski Północny Mówiony",
+"Bułgarski",
+"Sukuma",
+"Tadżycki",
+"Marwari",
+"Wenecki",
+"Kanuri, Yerwa",
+"Mòoré",
+"Madurski",
+"Tigrińska",
+"Santhali",
+"Kreolski haitański",
+"Malagaski, Płaskowyż",
+"Słowacki",
+"Tachelhit",
+"Luba-Kasai",
+"Varhadi-Nagpuri",
+"Kaszmirski",
+"Turkmeński",
+"Chorwacki",
+"Gikuyu",
+"Ganda",
+"Paszto, Centralny",
+"Ilokano",
+"Fiński",
+"Hiligaynon",
+"Gwarani, Paragwajski",
+"Tajski, Północny",
+"Umbundu",
+"Krio",
+"Niemiecki, Szwajcarski",
+"Napoletański-Kalabryjski",
+"Duński",
+"Bundeli",
+"Kabyle",
+"Malvi",
+"Pular",
+"Norweski",
+"Wolof",
+"Sango",
+"Lambadi",
+"Tatarski",
+"Sanskryt",
+"Ghanański Pidżyn Angielski",
+"Betawi",
+"Kituba",
+"Arabski, Libijski Mówiony",
+"Kirgiski",
+"Swati",
+"Tamazight, Środkowy Atlas",
+"Sycylijski",
+"Ewe",
+"Baoulé",
+"Chiński, Huizhou",
+"Arabski, Hadrami Mówiony",
+"Oromo, Wschodni",
+"Kurdyjski, Centralny",
+"Laotański",
+"Tajski, Południowy",
+"Kamba",
+"Pulaar",
+"Awadhi",
+"Tarifit",
+"Uzbecki, Południowy",
+"Minangkabau",
+"Dholuo",
+"Mewari",
+"Arabski, Nadżdyjski Mówiony",
+"Tok Pisin",
+"Bemba",
+"Indyjski Język Migowy",
+"Balochi, Południowy",
+"Bugis",
+"Tiv",
+"Oromo, Borana"
+
+
+        ];
+
+        // Lista poziomów w skali CEFR
+        const CEFR_LEVELS = ["A1","A2","B1","B2","C1","C2"];
+
+        /**
+        * Funkcja dodaje nowy "wiersz" (select języka + select poziomu) do kontenera #languagesContainer
+        */
+        function addLanguageRow() {
+        const container = document.getElementById('languagesContainer');
+
+        // Główny div wiersza
+        const rowDiv = document.createElement('div');
+        rowDiv.classList.add('d-flex', 'gap-2', 'mb-2');
+
+        // Select do wyboru języka
+        const langSelect = document.createElement('select');
+        langSelect.name = "language[]";  // [] pozwala wysłać wiele wartości do backendu
+        langSelect.classList.add('form-select', 'w-auto');
+
+        // Dodaj placeholder
+        let opt = document.createElement('option');
+        opt.value = "";
+        opt.textContent = "-- Wybierz język --";
+        langSelect.appendChild(opt);
+
+        // Dodaj wszystkie języki
+        ALL_LANGUAGES.forEach(lang => {
+        const option = document.createElement('option');
+        option.value = lang;
+        option.textContent = lang;
+        langSelect.appendChild(option);
+    });
+
+        // Select do wyboru poziomu
+        const levelSelect = document.createElement('select');
+        levelSelect.name = "level[]";
+        levelSelect.classList.add('form-select', 'w-auto');
+
+        // Dodaj placeholder poziomu
+        let optLevel = document.createElement('option');
+        optLevel.value = "";
+        optLevel.textContent = "-- Poziom --";
+        levelSelect.appendChild(optLevel);
+
+        // Dodaj poziomy CEFR
+        CEFR_LEVELS.forEach(l => {
+        const option = document.createElement('option');
+        option.value = l;
+        option.textContent = l;
+        levelSelect.appendChild(option);
+    });
+
+        // Przycisk "Usuń" wiersz
+        const removeBtn = document.createElement('button');
+        removeBtn.type = "button";
+        removeBtn.classList.add('btn','btn-danger');
+        removeBtn.textContent = "Usuń";
+        removeBtn.onclick = () => rowDiv.remove();
+
+        // Dodaj elementy do rowDiv
+        rowDiv.appendChild(langSelect);
+        rowDiv.appendChild(levelSelect);
+        rowDiv.appendChild(removeBtn);
+
+        // Wstaw rowDiv do kontenera
+        container.appendChild(rowDiv);
+    }
+
+
+</script>
+
+{% endblock %}
