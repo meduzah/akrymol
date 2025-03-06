@@ -23,22 +23,7 @@ def home():
 # -------------------------------------------------
 # Wyświetlanie listy PM-ów
 # -------------------------------------------------
-@app.route('/pm-list')
-def pm_list():
-    conn = sqlite3.connect('database.db')
-    # (opcjonalnie) umożliwiamy dostęp po nazwach kolumn:
-    conn.row_factory = sqlite3.Row
 
-    c = conn.cursor()
-    c.execute('SELECT * FROM project_managers')
-    pm_rows = c.fetchall()
-    conn.close()
-
-    return render_template('pm_list.html', pm_rows=pm_rows)
-
-# -------------------------------------------------
-# Dodawanie nowego PM-a
-# -------------------------------------------------
 @app.route('/add-pm', methods=['GET', 'POST'])
 def add_pm():
     if request.method == 'POST':
@@ -146,6 +131,21 @@ def add_pm():
 # -------------------------------------------------
 # Usuwanie PM-a
 # -------------------------------------------------
+
+@app.route('/pm/<int:pm_id>')
+def pm_details(pm_id):
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    c.execute('SELECT * FROM project_managers WHERE id = ?', (pm_id,))
+    pm = c.fetchone()
+    conn.close()
+
+    if pm is None:
+        return "Nie znaleziono takiego Project Managera!", 404
+
+    return render_template('pm_details.html', pm=pm)
+
 @app.route('/delete-pm/<int:pm_id>', methods=['POST'])
 def delete_pm(pm_id):
     conn = sqlite3.connect('database.db')
@@ -203,28 +203,54 @@ def edit_pm(pm_id):
 # -------------------------------------------------
 @app.route('/search', methods=['GET'])
 def search():
-    location = request.args.get('location', '')
-    experience = request.args.get('experience', '')
-
-    conn = sqlite3.connect('database.db')
-    c = conn.cursor()
+    location = request.args.get('location', '').strip()
+    level_seniority = request.args.get('level_seniority', '').strip()
+    travel_ready = request.args.get('travel_ready', '').strip()
+    remote_on_site = request.args.get('remote_on_site', '').strip()
+    tools = request.args.get('tools', '').strip()
+    methodologies = request.args.get('methodologies', '').strip()
+    languages = request.args.get('languages', '').strip()
 
     query = 'SELECT * FROM project_managers WHERE 1=1'
     params = []
 
     if location:
-        query += ' AND province LIKE ?'
-        params.append(f'%{location}%')
+        query += ' AND (country LIKE ? OR region LIKE ?)'
+        params.extend([f'%{location}%', f'%{location}%'])
 
-    if experience:
-        query += ' AND experience_pm LIKE ?'
-        params.append(f'%{experience}%')
+    if level_seniority:
+        query += ' AND level_seniority = ?'
+        params.append(level_seniority)
 
+    if travel_ready:
+        query += ' AND travel_ready = ?'
+        params.append(travel_ready)
+
+    if remote_on_site:
+        query += ' AND remote_on_site = ?'
+        params.append(remote_on_site)
+
+    if tools:
+        query += ' AND tools LIKE ?'
+        params.append(f'%{tools}%')
+
+    if methodologies:
+        query += ' AND methodologies LIKE ?'
+        params.append(f'%{methodologies}%')
+
+    if languages:
+        query += ' AND languages LIKE ?'
+        params.append(f'%{languages}%')
+
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
     c.execute(query, params)
     results = c.fetchall()
     conn.close()
 
     return render_template('search.html', results=results)
+
 
 # -------------------------------------------------
 # Obsługa błędu 404

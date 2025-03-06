@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Szczegóły Project Managera{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2><i class="bi bi-person-lines-fill"></i> Szczegółowe informacje</h2>
+
+  <div class="card mt-3">
+    <div class="card-body">
+      <h4 class="card-title">
+        {{ pm['name'] }} {{ pm['surname'] }}
+      </h4>
+      <p class="text-muted">
+        Doświadczenie PM: {{ pm['experience_pm'] }} lat |
+        Doświadczenie PM w IT: {{ pm['experience_pm_it'] }} lat
+      </p>
+
+      <hr>
+
+      <div class="row mb-3">
+        <div class="col-3 fw-bold">Lokalizacja</div>
+        <div class="col-9">
+          Kontynent: {{ pm['continent'] }}<br>
+          Kraj: {{ pm['country'] }} / {{ pm['region'] }}
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-3 fw-bold">Gotowość do podróży</div>
+        <div class="col-9">
+          {% if pm['travel_ready'] == 1 %}
+            <span class="badge bg-success"><i class="bi bi-check-circle"></i> TAK</span>
+          {% else %}
+            <span class="badge bg-danger"><i class="bi bi-x-circle"></i> NIE</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-3 fw-bold">Level seniority</div>
+        <div class="col-9">{{ pm['level_seniority'] }}</div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-3 fw-bold">Wykształcenie techniczne</div>
+        <div class="col-9">{{ pm['technical_ed'] }}</div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-3 fw-bold">Języki</div>
+        <div class="col-9">
+          <!-- Zakładam, że w bazie trzymasz "Polski(B2);Angielski(A1)" w kolumnie language_levels -->
+          {% if pm['language_levels'] %}
+            <ul>
+            {% for item in pm['language_levels'].split(';') %}
+              <li>{{ item }}</li>
+            {% endfor %}
+            </ul>
+          {% else %}
+            ---
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-3 fw-bold">Metodologie</div>
+        <div class="col-9">
+          {% if pm['methodologies'] %}
+            {% for m in pm['methodologies'].split(',') %}
+              <span class="badge bg-primary me-1">{{ m }}</span>
+            {% endfor %}
+          {% else %}
+            ---
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-3 fw-bold">Narzędzia (Tools)</div>
+        <div class="col-9">
+          {% if pm['tools'] %}
+            {% for t in pm['tools'].split(',') %}
+              <span class="badge bg-secondary me-1">{{ t }}</span>
+            {% endfor %}
+          {% else %}
+            ---
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-3 fw-bold">Certyfikaty</div>
+        <div class="col-9">
+          {{ pm['certificates'] or '---' }}
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-3 fw-bold">Dodatkowe info</div>
+        <div class="col-9">
+          {{ pm['additional_info'] or '---' }}
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-3 fw-bold">Preferowany tryb pracy</div>
+        <div class="col-9">
+          {{ pm['remote_on_site'] or '---' }}
+        </div>
+      </div>
+
+      <a href="{{ url_for('pm_list') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left-circle"></i> Powrót
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
