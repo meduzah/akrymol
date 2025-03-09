@@ -29,6 +29,21 @@
            <li class="nav-item">
     <a class="nav-link" href="{{ url_for('add_pm') }}">Dodaj PM-a</a>
            </li>
+            {% if logged_in %}
+                <li class="nav-item">
+                    <p>{{ logged_user }}</p>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">Wyloguj się</a>
+                </li>
+            {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="/login">Zaloguj się</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/register">Zarejestruj się</a>
+                </li>
+            {% endif %}
 
         </ul>
 

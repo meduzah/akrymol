@@ -109,7 +109,16 @@
         </div>
       </div>
 
-      <a href="{{ url_for('pm_list') }}" class="btn btn-secondary">
+    <div class="row mb-3">
+        <div class="col-3 fw-bold">CV</div>
+        {% if pm['cv_file'] %}
+            <a class="btn btn-success" href="{{ url_for('download_file', pm_id=pm['id']) }}">Pobierz</a>
+        {% else %}
+            <div class="col-9">---</div>
+        {% endif %}
+    </div>
+
+      <a href="{{ url_for('search') }}" class="btn btn-secondary">
         <i class="bi bi-arrow-left-circle"></i> Powrót
       </a>
     </div>
