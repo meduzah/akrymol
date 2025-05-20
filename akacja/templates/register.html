@@ -1,23 +1,104 @@
 {% extends "base.html" %}
-{%  block content %}
-<div class="container mt-5">
-    <h2>Zarejestruj się</h2>
+{% block title %}Rejestracja - PMfinder{% endblock %}
 
-    <form method="POST" action="{{ url_for('register') }}">
-        <div class="mb-3">
-            <label for="username" class="form-label">Nazwa użytkownika</label>
-            <input type="text" class="form-control" id="username" name="username" required>
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        <i class="bi bi-person-plus-fill me-2"></i>Rejestracja
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('register') }}" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Nazwa użytkownika</label>
+                            <input type="text" class="form-control" id="username" name="username" required
+                                   value="{{ request.form.get('username', '') }}">
+                            <div class="form-text">Nazwa użytkownika musi być unikalna.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required
+                                   value="{{ request.form.get('email', '') }}">
+                            <div class="form-text">Na ten adres wyślemy link aktywacyjny.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Hasło</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                            <div class="form-text">
+                                Hasło musi zawierać:
+                                <ul class="mb-0">
+                                    <li>Minimum 8 znaków</li>
+                                    <li>Przynajmniej jedną wielką literę</li>
+                                    <li>Przynajmniej jedną małą literę</li>
+                                    <li>Przynajmniej jedną cyfrę</li>
+                                    <li>Przynajmniej jeden znak specjalny</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="confirm_password" class="form-label">Potwierdź hasło</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-person-plus me-2"></i>Zarejestruj się
+                            </button>
+                            <a href="{{ url_for('login') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Wróć do logowania
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-        <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input type="text" class="form-control" id="email" name="email" required>
-        </div>
-        <div class="mb-3">
-            <label for="password" class="form-label">Hasło</label>
-            <input type="password" class="form-control" id="password" name="password" required>
-        </div>
-        <button type="submit" class="btn btn-success mt-3">Zarejestruj</button>
-    </form>
+    </div>
 </div>
 
+<script>
+// Walidacja formularza po stronie klienta
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+})()
+
+// Sprawdzanie czy hasła są identyczne
+document.getElementById('confirm_password').addEventListener('input', function() {
+    var password = document.getElementById('password').value;
+    var confirm = this.value;
+    
+    if (password !== confirm) {
+        this.setCustomValidity('Hasła muszą być identyczne');
+    } else {
+        this.setCustomValidity('');
+    }
+});
+
+document.getElementById('password').addEventListener('input', function() {
+    var confirm = document.getElementById('confirm_password');
+    if (confirm.value) {
+        if (this.value !== confirm.value) {
+            confirm.setCustomValidity('Hasła muszą być identyczne');
+        } else {
+            confirm.setCustomValidity('');
+        }
+    }
+});
+</script>
 {% endblock %}

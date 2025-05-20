@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 
 
 
@@ -32,13 +33,23 @@ def create_database():
             username TEXT NOT NULL
         )
     ''')
+
+    # Tabela użytkowników z nowymi kolumnami bezpieczeństwa
     c.execute('''CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT NOT NULL,
-                email TEXT NOT NULL,
-                password TEXT NOT NULL
-              )
-        ''')
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL UNIQUE,
+        email TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL,
+        is_verified BOOLEAN DEFAULT 0,
+        verification_token TEXT,
+        verification_token_expires DATETIME,
+        last_login_attempt DATETIME,
+        failed_login_attempts INTEGER DEFAULT 0,
+        account_locked_until DATETIME,
+        two_factor_code TEXT,
+        two_factor_code_expires DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )''')
 
     # Zatwierdzenie zmian i zamknięcie połączenia
     conn.commit()

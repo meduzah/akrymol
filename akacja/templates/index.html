@@ -1,12 +1,249 @@
 {% extends "base.html" %}
 
-{% block title %}Strona główna{% endblock %}
+{% block title %}PMfinder - Zarządzanie Project Managerami{% endblock %}
 
 {% block content %}
+{% if logged_in %}
+    {# Widok dla zalogowanych użytkowników #}
+    <div class="hero-section text-center py-5 mb-4">
+        <div class="container">
+            <h1 class="display-4 mb-4">Panel zarządzania PMfinder</h1>
+            <p class="lead mb-4">Witaj w swoim panelu zarządzania Project Managerami</p>
+        </div>
+    </div>
 
-<h1>Witaj w aplikacji Project Manager!</h1>
-<p>Liczba PM-ów w systemie: {{ total_pm }}</p>
-<p>Liczba PM-ów gotowych do podróży: {{ ready_to_travel }}</p>
-<a href="/search" class="btn btn-primary">Zobacz listę PM-ów</a>
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-md-4">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="fas fa-users fa-3x mb-3 text-primary"></i>
+                        <h3 class="card-title">{{ total_pm }}</h3>
+                        <p class="card-text">Project Managerów w systemie</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="fas fa-plane fa-3x mb-3 text-primary"></i>
+                        <h3 class="card-title">{{ ready_to_travel }}</h3>
+                        <p class="card-text">Gotowych do relokacji</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="fas fa-globe fa-3x mb-3 text-primary"></i>
+                        <h3 class="card-title">Globalne możliwości</h3>
+                        <p class="card-text">Zarządzaj projektami na całym świecie</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h2 class="mb-4">Szybkie akcje</h2>
+                <a href="{{ url_for('add_pm') }}" class="btn btn-primary btn-lg mx-2 mb-2">
+                    <i class="fas fa-plus-circle"></i> Dodaj nowego PM
+                </a>
+                <a href="{{ url_for('search') }}" class="btn btn-success btn-lg mx-2 mb-2">
+                    <i class="fas fa-search"></i> Wyszukaj PM-ów
+                </a>
+            </div>
+        </div>
+    </div>
+
+{% else %}
+    {# Widok dla niezalogowanych użytkowników #}
+    <div class="hero-section text-center py-5 rounded-4">
+        <div class="container">
+            <h1 class="display-3 mb-4">Witaj w PMfinder</h1>
+            <p class="lead mb-5">Profesjonalne narzędzie do zarządzania Project Managerami w Twojej organizacji</p>
+            <div class="mb-4">
+                <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg mx-2 mb-2">
+                    <i class="fas fa-sign-in-alt me-2"></i>Zaloguj się
+                </a>
+                <a href="{{ url_for('register') }}" class="btn btn-outline-light btn-lg mx-2 mb-2">
+                    <i class="fas fa-user-plus me-2"></i>Zarejestruj się
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container py-5">
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h2 class="mb-5">Dlaczego PMfinder?</h2>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="feature-box p-4 bg-light rounded">
+                    <h4><i class="fas fa-check-circle text-success"></i> Efektywne zarządzanie</h4>
+                    <p>Wszystkie informacje o Project Managerach w jednym miejscu. Łatwe zarządzanie zespołem i projektami.</p>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="feature-box p-4 bg-light rounded">
+                    <h4><i class="fas fa-search text-primary"></i> Zaawansowane wyszukiwanie</h4>
+                    <p>Szybko znajduj odpowiednich kandydatów do projektów dzięki inteligentnym filtrom wyszukiwania.</p>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="feature-box p-4 bg-light rounded">
+                    <h4><i class="fas fa-shield-alt text-info"></i> Bezpieczeństwo danych</h4>
+                    <p>Twoje dane są chronione przez zaawansowane mechanizmy bezpieczeństwa i szyfrowanie.</p>
+                </div>
+            </div>
+         
+        </div>
+
+        <div class="row py-5">
+            <div class="col-12 text-center">
+                <h2 class="mb-4">Rozpocznij już teraz</h2>
+                <p class="lead mb-4">Dołącz do grona firm efektywnie zarządzających swoimi Project Managerami</p>
+                <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-rocket me-2"></i>Załóż darmowe konto
+                </a>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.hero-section {
+    background: linear-gradient(135deg, #2b6777 0%, #52ab98 100%);
+    color: white;
+    padding: 4rem 0;
+    margin: 2rem;
+}
+
+.hero-section .btn-outline-primary {
+    color: white;
+    border-color: white;
+}
+
+.hero-section .btn-outline-primary:hover {
+    background-color: white;
+    color: #2b6777;
+}
+
+.feature-box {
+    transition: transform 0.2s;
+    border: 1px solid #c8d8e4;
+    background-color: #ffffff !important;
+}
+
+.feature-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(43, 103, 119, 0.1);
+}
+
+.card {
+    transition: transform 0.2s;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(43, 103, 119, 0.1);
+    background-color: #ffffff;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.fas {
+    margin-right: 0.5rem;
+}
+
+.feature-box h4 {
+    color: #2b6777;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.feature-box p {
+    color: #52ab98;
+    margin-bottom: 0;
+}
+
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
+}
+
+.team-image-container {
+    margin: -3rem auto 3rem;
+    max-width: 1000px;
+}
+
+.team-image-container img {
+    width: 100%;
+    height: auto;
+    border: 8px solid #ffffff;
+}
+
+/* Custom button styles */
+.btn-primary {
+    background-color: #2b6777;
+    border-color: #2b6777;
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background-color: #52ab98;
+    border-color: #52ab98;
+    color: #ffffff;
+}
+
+.btn-success {
+    background-color: #52ab98;
+    border-color: #52ab98;
+}
+
+.btn-success:hover {
+    background-color: #2b6777;
+    border-color: #2b6777;
+}
+
+/* Icon colors */
+.text-primary {
+    color: #2b6777 !important;
+}
+
+.text-success {
+    color: #52ab98 !important;
+}
+
+.text-info {
+    color: #52ab98 !important;
+}
+
+.text-warning {
+    color: #2b6777 !important;
+}
+
+/* Background colors */
+body {
+    background-color: #f2f2f2;
+}
+
+.bg-light {
+    background-color: #c8d8e4 !important;
+}
+
+/* Text colors */
+.text-dark {
+    color: #2b6777 !important;
+}
+
+.navbar-brand.text-danger {
+    color: #2b6777 !important;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://kit.fontawesome.com/your-font-awesome-kit.js" crossorigin="anonymous"></script>
 {% endblock %}

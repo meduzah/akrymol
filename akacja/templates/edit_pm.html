@@ -1,19 +1,430 @@
-<form method="POST">
-  <div class="mb-3">
-    <label for="name" class="form-label">Imię i nazwisko</label>
-    <input type="text" class="form-control" id="name" name="name" value="{{ pm[1] }}" required>
-  </div>
-  <div class="mb-3">
-    <label for="experience" class="form-label">Doświadczenie</label>
-    <input type="text" class="form-control" id="experience" name="experience" value="{{ pm[2] }}" required>
-  </div>
-  <div class="mb-3">
-    <label for="location" class="form-label">Lokalizacja</label>
-    <input type="text" class="form-control" id="location" name="location" value="{{ pm[3] }}" required>
-  </div>
-  <div class="form-check">
-    <input type="checkbox" class="form-check-input" id="travel_ready" name="travel_ready" {% if pm[4] %}checked{% endif %}>
-    <label class="form-check-label" for="travel_ready">Gotowość do podróży</label>
-  </div>
-  <button type="submit" class="btn btn-primary mt-3">Zapisz zmiany</button>
-</form>
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Edytuj Project Managera</h2>
+
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <!-- Formularz -->
+    <form method="POST" action="{{ url_for('edit_pm', pm_id=pm['id']) }}" enctype="multipart/form-data">
+
+        <!-- 1. Imię i nazwisko -->
+        <div class="mb-3">
+            <label for="name" class="form-label">Imię</label>
+            <input type="text" class="form-control" id="name" name="name" value="{{ pm['name'] }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="surname" class="form-label">Nazwisko</label>
+            <input type="text" class="form-control" id="surname" name="surname" value="{{ pm['surname'] }}" required>
+        </div>
+
+        <!-- 2. Doświadczenie jako PM (suwak) -->
+        <label for="experience_pm">Doświadczenie jako PM (w latach)</label>
+        <input type="range" class="form-range"
+               id="experience_pm"
+               name="experience_pm"
+               min="0" max="50" step="1"
+               value="{{ pm['experience_pm'] }}"
+               oninput="validateExperience(this.value, 'experience_pm_it'); document.getElementById('expValue').textContent = this.value">
+        <div>
+          Wybrane: <span id="expValue">{{ pm['experience_pm'] }}</span> lat
+        </div>
+
+        <!-- 3. Doświadczenie jako PM w IT (suwak) -->
+        <label for="experience_pm_it">Doświadczenie jako PM w IT (w latach)</label>
+        <input type="range" class="form-range"
+               id="experience_pm_it"
+               name="experience_pm_it"
+               min="0" max="50" step="1"
+               value="{{ pm['experience_pm_it'] }}"
+               oninput="validateExperience(document.getElementById('experience_pm').value, this.value); document.getElementById('expValueIT').textContent = this.value">
+        <div>
+          Wybrane: <span id="expValueIT">{{ pm['experience_pm_it'] }}</span> lat
+          <div id="experienceError" class="text-danger" style="display: none;">
+            Doświadczenie jako PM w IT nie może być większe niż całkowite doświadczenie jako PM
+          </div>
+        </div>
+
+        <!-- KONTYNENT -->
+        <div class="mb-3">
+            <label for="continentSelect" class="form-label">Kontynent</label>
+            <select id="continentSelect" class="form-select" name="continent" onchange="updateCountries()" required>
+                <option value="">-- Wybierz kontynent --</option>
+            </select>
+        </div>
+
+        <!-- PAŃSTWO (zależne od kontynentu) -->
+        <div class="mb-3">
+            <label for="countrySelect" class="form-label">Państwo</label>
+            <select id="countrySelect" class="form-select" name="country" onchange="updateRegions()">
+                <option value="">-- Najpierw wybierz kontynent --</option>
+            </select>
+        </div>
+
+        <!-- REGION / WOJEWÓDZTWO (zależne od kraju) -->
+        <div class="mb-3">
+            <label for="regionSelect" class="form-label">Region / Województwo</label>
+            <select id="regionSelect" class="form-select" name="region">
+                <option value="">-- Najpierw wybierz państwo --</option>
+            </select>
+        </div>
+
+        <!-- Gotowość do podróży -->
+        <div class="form-check mb-3">
+            <input type="checkbox" class="form-check-input" id="travel_ready" name="travel_ready" {% if pm['travel_ready'] == 1 %}checked{% endif %}>
+            <label class="form-check-label" for="travel_ready">Możliwość zmiany miejsca zamiszkania</label>
+        </div>
+
+        <!-- Poziom seniority -->
+        <div class="mb-3">
+            <label for="level_seniority" class="form-label">Level of seniority</label>
+            <select class="form-select" name="level_seniority" id="level_seniority" required>
+                <option value="">-- Wybierz poziom --</option>
+                <option value="Nie dotyczy" {% if pm['level_seniority'] == 'Nie dotyczy' %}selected{% endif %}>Nie dotyczy</option>
+                <option value="Junior" {% if pm['level_seniority'] == 'Junior' %}selected{% endif %}>Junior</option>
+                <option value="Mid" {% if pm['level_seniority'] == 'Mid' %}selected{% endif %}>Mid</option>
+                <option value="Senior" {% if pm['level_seniority'] == 'Senior' %}selected{% endif %}>Senior</option>
+            </select>
+        </div>
+
+        <!-- ukonczone studia -->
+        <div class="mb-3">
+            <label for="field_of_study" class="form-label">Ukończone studia</label>
+            <input type="text" class="form-control" id="field_of_study" name="field_of_study" value="{{ pm['field_of_study'] }}" placeholder="Nazwy kierunków i specjalizacji">
+        </div>
+
+        <!-- Wykształcenie techniczne (technical_ed) -->
+        <div class="mb-3">
+            <label class="form-label d-block">Wykształcenie techniczne</label>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="technical_ed" id="technical_ed_yes" value="tak" {% if pm['technical_ed'] == 'tak' %}checked{% endif %}>
+                <label class="form-check-label" for="technical_ed_yes">Tak</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="technical_ed" id="technical_ed_no" value="nie" {% if pm['technical_ed'] == 'nie' %}checked{% endif %}>
+                <label class="form-check-label" for="technical_ed_no">Nie</label>
+            </div>
+        </div>
+
+        <!-- Sekcja do wyboru języków i poziomów -->
+        <div class="mb-3">
+            <label class="form-label d-block">Znajomość języków</label>
+            <div id="languagesContainer">
+                <!-- Istniejące języki zostaną dodane przez JavaScript -->
+            </div>
+            <button type="button" class="btn btn-outline-primary mt-2" onclick="addLanguageRow()">
+                Dodaj język
+            </button>
+        </div>
+
+        <!-- Metodologie (checkboxy) -->
+        <div class="mb-3">
+            <label class="form-label d-block">Metodologie</label>
+            {% set methodologies_list = pm['methodologies'].split(',') if pm['methodologies'] else [] %}
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="methodologies" value="Scrum" id="met_scrum" {% if 'Scrum' in methodologies_list %}checked{% endif %}>
+                <label class="form-check-label" for="met_scrum">Scrum</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="methodologies" value="Kanban" id="met_kanban" {% if 'Kanban' in methodologies_list %}checked{% endif %}>
+                <label class="form-check-label" for="met_kanban">Kanban</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="methodologies" value="Waterfall" id="met_waterfall" {% if 'Waterfall' in methodologies_list %}checked{% endif %}>
+                <label class="form-check-label" for="met_waterfall">Waterfall</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="methodologies" value="Prince2" id="met_prince2" {% if 'Prince2' in methodologies_list %}checked{% endif %}>
+                <label class="form-check-label" for="met_prince2">Prince2</label>
+            </div>
+            <!-- Dodane metodologie -->
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="methodologies" value="Lean" id="met_lean" {% if 'Lean' in methodologies_list %}checked{% endif %}>
+                <label class="form-check-label" for="met_lean">Lean</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="methodologies" value="PMBOK" id="met_pmbok" {% if 'PMBOK' in methodologies_list %}checked{% endif %}>
+                <label class="form-check-label" for="met_pmbok">PMBOK (PMI)</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="methodologies" value="Six Sigma" id="met_sixsigma" {% if 'Six Sigma' in methodologies_list %}checked{% endif %}>
+                <label class="form-check-label" for="met_sixsigma">Six Sigma</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="methodologies" value="XP" id="met_xp" {% if 'XP' in methodologies_list %}checked{% endif %}>
+                <label class="form-check-label" for="met_xp">XP (Extreme Programming)</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="methodologies" value="SAFe" id="met_safe" {% if 'SAFe' in methodologies_list %}checked{% endif %}>
+                <label class="form-check-label" for="met_safe">SAFe</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="methodologies" value="LeSS" id="met_less" {% if 'LeSS' in methodologies_list %}checked{% endif %}>
+                <label class="form-check-label" for="met_less">LeSS</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="methodologies" value="DSDM" id="met_dsdm" {% if 'DSDM' in methodologies_list %}checked{% endif %}>
+                <label class="form-check-label" for="met_dsdm">DSDM</label>
+            </div>
+        </div>
+
+        <!-- Narzędzia (tools) -->
+        <div class="mb-3">
+            <label class="form-label d-block">Narzędzia (tools)</label>
+            {% set tools_list = pm['tools'].split(',') if pm['tools'] else [] %}
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="tools" value="Jira" id="tool_jira" {% if 'Jira' in tools_list %}checked{% endif %}>
+                <label class="form-check-label" for="tool_jira">Jira</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="tools" value="MS Project" id="tool_msproject" {% if 'MS Project' in tools_list %}checked{% endif %}>
+                <label class="form-check-label" for="tool_msproject">MS Project</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="tools" value="Confluence" id="tool_confluence" {% if 'Confluence' in tools_list %}checked{% endif %}>
+                <label class="form-check-label" for="tool_confluence">Confluence</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="tools" value="Asana" id="tool_asana" {% if 'Asana' in tools_list %}checked{% endif %}>
+                <label class="form-check-label" for="tool_asana">Asana</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="tools" value="Trello" id="tool_trello" {% if 'Trello' in tools_list %}checked{% endif %}>
+                <label class="form-check-label" for="tool_trello">Trello</label>
+            </div>
+            <!-- Dodaj pozostałe narzędzia analogicznie -->
+        </div>
+
+        <div class="mb-3">
+            <label for="certficates" class="form-label">Certyfikaty</label>
+            <textarea class="form-control" id="certficates" name="certificates" rows="2">{{ pm['certificates'] }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="additional_info" class="form-label">Dodatkowe informacje</label>
+            <textarea class="form-control" id="additional_info" name="additional_info" rows="2">{{ pm['additional_info'] }}</textarea>
+        </div>
+
+        <!-- chęć do pracy zdalnej -->
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" name="stacjonarnie" id="tryb_pracy" {% if pm['stacjonarnie'] == 1 %}checked{% endif %}>
+            <label class="form-check-label" for="tryb_pracy">Możliwość pracy wyłącznie stacjonarnie</label>
+        </div>
+
+        <!-- Tryb pracy (Remote / On-site / Hybrid) -->
+        <div class="mb-3">
+            <label for="remote_on_site" class="form-label">Preferowany tryb pracy</label>
+            <select class="form-select" name="remote_on_site" id="remote_on_site" required>
+                <option value="">-- Wybierz tryb --</option>
+                <option value="Obojętnie" {% if pm['remote_on_site'] == 'Obojętnie' %}selected{% endif %}>Obojętnie</option>
+                <option value="Remote" {% if pm['remote_on_site'] == 'Remote' %}selected{% endif %}>Remote (zdalnie)</option>
+                <option value="On-site" {% if pm['remote_on_site'] == 'On-site' %}selected{% endif %}>On-site (na miejscu)</option>
+                <option value="Hybrid" {% if pm['remote_on_site'] == 'Hybrid' %}selected{% endif %}>Hybrid (hybrydowo)</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="cv_file" class="form-label">Zaktualizuj CV (opcjonalnie)</label>
+            <input type="file" class="form-control" id="cv_file" name="cv_file" accept=".pdf,.doc,.docx">
+            {% if pm['cv_file'] and pm['cv_file']['exists'] %}
+            <small class="text-muted">Aktualnie masz przesłane CV. Przesłanie nowego pliku zastąpi obecne CV.</small>
+            {% endif %}
+        </div>
+
+        <!-- Przyciski -->
+        <div class="mt-4">
+            <button type="submit" class="btn btn-success">Zapisz zmiany</button>
+            <a href="{{ url_for('pm_details', pm_id=pm['id']) }}" class="btn btn-secondary ms-2">Anuluj</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Definicja danych kontynentów, krajów i regionów
+    const continentsData = {{ continents_data|tojson|safe }};
+    
+    // Funkcje do obsługi formularza
+    function updateCountries() {
+        const continentSelect = document.getElementById('continentSelect');
+        const countrySelect = document.getElementById('countrySelect');
+        const selectedContinent = continentSelect.value;
+        
+        // Clear current options
+        countrySelect.innerHTML = '<option value="">-- Wybierz kraj --</option>';
+        
+        // Special handling for Antarctica
+        if (selectedContinent === "Antarktyda") {
+            countrySelect.removeAttribute('required');
+            const option = document.createElement('option');
+            option.value = "Brak państw";
+            option.textContent = "Brak państw";
+            countrySelect.appendChild(option);
+            countrySelect.value = "Brak państw";
+        } else {
+            countrySelect.setAttribute('required', '');
+            if (selectedContinent && continentsData[selectedContinent]) {
+                const countries = Object.keys(continentsData[selectedContinent]);
+                countries.forEach(country => {
+                    const option = document.createElement('option');
+                    option.value = country;
+                    option.textContent = country;
+                    countrySelect.appendChild(option);
+                });
+                // Ustaw poprzednio wybrany kraj
+                if (selectedContinent === "{{ pm['continent'] }}") {
+                    countrySelect.value = "{{ pm['country'] }}";
+                }
+            }
+        }
+        
+        // Update regions
+        updateRegions();
+    }
+
+    function updateRegions() {
+        const continentSelect = document.getElementById('continentSelect');
+        const countrySelect = document.getElementById('countrySelect');
+        const regionSelect = document.getElementById('regionSelect');
+        const selectedContinent = continentSelect.value;
+        const selectedCountry = countrySelect.value;
+        
+        // Clear current options
+        regionSelect.innerHTML = '<option value="">-- Wybierz region --</option>';
+        
+        if (selectedContinent && selectedCountry && 
+            continentsData[selectedContinent] && 
+            continentsData[selectedContinent][selectedCountry]) {
+            const regions = continentsData[selectedContinent][selectedCountry];
+            if (regions) {
+                regions.forEach(region => {
+                    const option = document.createElement('option');
+                    option.value = region;
+                    option.textContent = region;
+                    regionSelect.appendChild(option);
+                });
+                // Ustaw poprzednio wybrany region
+                if (selectedCountry === "{{ pm['country'] }}") {
+                    regionSelect.value = "{{ pm['region'] }}";
+                }
+            }
+        }
+    }
+
+    // Initialize form on load
+    document.addEventListener('DOMContentLoaded', function() {
+        const continentSelect = document.getElementById('continentSelect');
+        const continents = Object.keys(continentsData);
+        
+        // Clear and add default option
+        continentSelect.innerHTML = '<option value="">-- Wybierz kontynent --</option>';
+        
+        // Add all continents
+        continents.forEach(continent => {
+            const option = document.createElement('option');
+            option.value = continent;
+            option.textContent = continent;
+            continentSelect.appendChild(option);
+        });
+
+        // Set previously selected continent
+        continentSelect.value = "{{ pm['continent'] }}";
+        
+        // Update countries and regions
+        updateCountries();
+        
+        // Initialize languages
+        const languageLevels = "{{ pm['language_levels'] }}".split(';').filter(x => x);
+        languageLevels.forEach(langLevel => {
+            const match = langLevel.match(/(.+)\((.+)\)/);
+            if (match) {
+                const [_, lang, level] = match;
+                addLanguageRow(lang.trim(), level.trim());
+            }
+        });
+    });
+
+    function validateExperience(totalExp, itExp) {
+        const totalExpNum = parseInt(totalExp);
+        const itExpNum = parseInt(document.getElementById(itExp).value);
+        const errorDiv = document.getElementById('experienceError');
+        
+        if (itExpNum > totalExpNum) {
+            errorDiv.style.display = 'block';
+            return false;
+        }
+        
+        errorDiv.style.display = 'none';
+        return true;
+    }
+
+    function addLanguageRow(selectedLang = '', selectedLevel = '') {
+        const container = document.getElementById('languagesContainer');
+        const rowDiv = document.createElement('div');
+        rowDiv.classList.add('d-flex', 'gap-2', 'mb-2');
+
+        // Select do wyboru języka
+        const langSelect = document.createElement('select');
+        langSelect.name = "language[]";
+        langSelect.classList.add('form-select', 'w-auto');
+
+        // Dodaj placeholder
+        let opt = document.createElement('option');
+        opt.value = "";
+        opt.textContent = "-- Wybierz język --";
+        langSelect.appendChild(opt);
+
+        // Dodaj wszystkie języki
+        ALL_LANGUAGES.forEach(lang => {
+            const option = document.createElement('option');
+            option.value = lang;
+            option.textContent = lang;
+            if (lang === selectedLang) {
+                option.selected = true;
+            }
+            langSelect.appendChild(option);
+        });
+
+        // Select do wyboru poziomu
+        const levelSelect = document.createElement('select');
+        levelSelect.name = "level[]";
+        levelSelect.classList.add('form-select', 'w-auto');
+
+        // Dodaj placeholder poziomu
+        let optLevel = document.createElement('option');
+        optLevel.value = "";
+        optLevel.textContent = "-- Poziom --";
+        levelSelect.appendChild(optLevel);
+
+        // Dodaj poziomy CEFR
+        CEFR_LEVELS.forEach(l => {
+            const option = document.createElement('option');
+            option.value = l;
+            option.textContent = l;
+            if (l === selectedLevel) {
+                option.selected = true;
+            }
+            levelSelect.appendChild(option);
+        });
+
+        // Przycisk "Usuń"
+        const removeBtn = document.createElement('button');
+        removeBtn.type = "button";
+        removeBtn.classList.add('btn', 'btn-danger');
+        removeBtn.textContent = "Usuń";
+        removeBtn.onclick = () => rowDiv.remove();
+
+        // Dodaj elementy do wiersza
+        rowDiv.appendChild(langSelect);
+        rowDiv.appendChild(levelSelect);
+        rowDiv.appendChild(removeBtn);
+
+        // Dodaj wiersz do kontenera
+        container.appendChild(rowDiv);
+    }
+</script>
+
+{% endblock %}

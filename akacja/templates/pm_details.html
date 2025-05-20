@@ -3,14 +3,20 @@
 
 {% block content %}
 <div class="container mt-4">
-  <h2><i class="bi bi-person-lines-fill"></i> Szczegółowe informacje</h2>
+  <h2 class="text-primary"><i class="bi bi-person-lines-fill"></i> Szczegółowe informacje</h2>
 
   <div class="card mt-3">
     <div class="card-body">
-      <h4 class="card-title">
-        {{ pm['name'] }} {{ pm['surname'] }}
-      </h4>
-      <p class="text-muted">
+      <div class="d-flex justify-content-between align-items-start">
+        <h4 class="card-title text-primary">
+          {{ pm['name'] }} {{ pm['surname'] }}
+        </h4>
+        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+          <i class="bi bi-trash"></i> Usuń
+        </button>
+      </div>
+      
+      <p class="text-secondary">
         Doświadczenie PM: {{ pm['experience_pm'] }} lat |
         Doświadczenie PM w IT: {{ pm['experience_pm_it'] }} lat
       </p>
@@ -18,7 +24,22 @@
       <hr>
 
       <div class="row mb-3">
-        <div class="col-3 fw-bold">Lokalizacja</div>
+        <div class="col-3 fw-bold text-primary">Kontakt</div>
+        <div class="col-9">
+          {% if pm['email'] %}
+            <i class="bi bi-envelope"></i> {{ pm['email'] }}<br>
+          {% endif %}
+          {% if pm['phone'] %}
+            <i class="bi bi-telephone"></i> {{ pm['phone'] }}
+          {% endif %}
+          {% if not pm['email'] and not pm['phone'] %}
+            <span class="text-muted">Brak danych kontaktowych</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-3 fw-bold text-primary">Lokalizacja</div>
         <div class="col-9">
           Kontynent: {{ pm['continent'] }}<br>
           Kraj: {{ pm['country'] }} / {{ pm['region'] }}
@@ -26,10 +47,10 @@
       </div>
 
       <div class="row mb-3">
-        <div class="col-3 fw-bold">Gotowość do podróży</div>
+        <div class="col-3 fw-bold text-primary">Gotowość do podróży</div>
         <div class="col-9">
           {% if pm['travel_ready'] == 1 %}
-            <span class="badge bg-success"><i class="bi bi-check-circle"></i> TAK</span>
+            <span class="badge" style="background-color: #52ab98"><i class="bi bi-check-circle"></i> TAK</span>
           {% else %}
             <span class="badge bg-danger"><i class="bi bi-x-circle"></i> NIE</span>
           {% endif %}
@@ -37,19 +58,18 @@
       </div>
 
       <div class="row mb-3">
-        <div class="col-3 fw-bold">Level seniority</div>
+        <div class="col-3 fw-bold text-primary">Level seniority</div>
         <div class="col-9">{{ pm['level_seniority'] }}</div>
       </div>
 
       <div class="row mb-3">
-        <div class="col-3 fw-bold">Wykształcenie techniczne</div>
+        <div class="col-3 fw-bold text-primary">Wykształcenie techniczne</div>
         <div class="col-9">{{ pm['technical_ed'] }}</div>
       </div>
 
       <div class="row mb-3">
-        <div class="col-3 fw-bold">Języki</div>
+        <div class="col-3 fw-bold text-primary">Języki</div>
         <div class="col-9">
-          <!-- Zakładam, że w bazie trzymasz "Polski(B2);Angielski(A1)" w kolumnie language_levels -->
           {% if pm['language_levels'] %}
             <ul>
             {% for item in pm['language_levels'].split(';') %}
@@ -57,71 +77,132 @@
             {% endfor %}
             </ul>
           {% else %}
-            ---
+            <span class="text-muted">---</span>
           {% endif %}
         </div>
       </div>
 
       <div class="row mb-3">
-        <div class="col-3 fw-bold">Metodologie</div>
+        <div class="col-3 fw-bold text-primary">Metodologie</div>
         <div class="col-9">
           {% if pm['methodologies'] %}
             {% for m in pm['methodologies'].split(',') %}
-              <span class="badge bg-primary me-1">{{ m }}</span>
+              <span class="badge me-1" style="background-color: #2b6777">{{ m }}</span>
             {% endfor %}
           {% else %}
-            ---
+            <span class="text-muted">---</span>
           {% endif %}
         </div>
       </div>
 
       <div class="row mb-3">
-        <div class="col-3 fw-bold">Narzędzia (Tools)</div>
+        <div class="col-3 fw-bold text-primary">Narzędzia (Tools)</div>
         <div class="col-9">
           {% if pm['tools'] %}
             {% for t in pm['tools'].split(',') %}
-              <span class="badge bg-secondary me-1">{{ t }}</span>
+              <span class="badge me-1" style="background-color: #52ab98">{{ t }}</span>
             {% endfor %}
           {% else %}
-            ---
+            <span class="text-muted">---</span>
           {% endif %}
         </div>
       </div>
 
       <div class="row mb-3">
-        <div class="col-3 fw-bold">Certyfikaty</div>
+        <div class="col-3 fw-bold text-primary">Certyfikaty</div>
         <div class="col-9">
           {{ pm['certificates'] or '---' }}
         </div>
       </div>
 
       <div class="row mb-3">
-        <div class="col-3 fw-bold">Dodatkowe info</div>
+        <div class="col-3 fw-bold text-primary">Dodatkowe info</div>
         <div class="col-9">
           {{ pm['additional_info'] or '---' }}
         </div>
       </div>
 
       <div class="row mb-3">
-        <div class="col-3 fw-bold">Preferowany tryb pracy</div>
+        <div class="col-3 fw-bold text-primary">Preferowany tryb pracy</div>
         <div class="col-9">
           {{ pm['remote_on_site'] or '---' }}
         </div>
       </div>
 
-    <div class="row mb-3">
-        <div class="col-3 fw-bold">CV</div>
-        {% if pm['cv_file'] %}
-            <a class="btn btn-success" href="{{ url_for('download_file', pm_id=pm['id']) }}">Pobierz</a>
-        {% else %}
-            <div class="col-9">---</div>
-        {% endif %}
-    </div>
+      <div class="row mb-3">
+        <div class="col-3 fw-bold text-primary">CV</div>
+        <div class="col-9">
+            {% if pm['cv_file'] and pm['cv_file']['exists'] %}
+                <a href="{{ url_for('download_file', pm_id=pm['id']) }}" class="btn" style="background-color: #52ab98; color: white">
+                    <i class="bi bi-file-earmark-arrow-down"></i> Pobierz CV (.{{ pm['cv_file']['extension'] }})
+                </a>
+            {% else %}
+                <span class="text-muted">Brak załączonego CV</span>
+            {% endif %}
+        </div>
+      </div>
 
-      <a href="{{ url_for('search') }}" class="btn btn-secondary">
+      <a href="{{ url_for('search') }}" class="btn" style="background-color: #2b6777; color: white">
         <i class="bi bi-arrow-left-circle"></i> Powrót
       </a>
     </div>
   </div>
 </div>
+
+<!-- Modal potwierdzenia usunięcia -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title text-primary" id="deleteModalLabel">Potwierdź usunięcie</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Czy na pewno chcesz usunąć project managera {{ pm['name'] }} {{ pm['surname'] }}? Tej operacji nie można cofnąć.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Anuluj</button>
+        <form action="{{ url_for('delete_pm', pm_id=pm['id']) }}" method="POST" style="display: inline;">
+          <button type="submit" class="btn btn-outline-danger">Usuń</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.text-primary {
+    color: #2b6777 !important;
+}
+
+.text-secondary {
+    color: #52ab98 !important;
+}
+
+.card {
+    border-color: #c8d8e4;
+}
+
+.modal-content {
+    background-color: #ffffff;
+    border-color: #c8d8e4;
+}
+
+.btn-outline-danger {
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: #ffffff;
+}
+
+.badge {
+    padding: 0.5em 0.8em;
+}
+</style>
 {% endblock %}

@@ -3,6 +3,12 @@
 <div class="container mt-5">
     <h2>Dodaj Project Managera</h2>
 
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+        {{ error }}
+    </div>
+    {% endif %}
+
     <!-- Formularz -->
     <form method="POST" action="{{ url_for('add_pm') }}" enctype="multipart/form-data">
 
@@ -16,29 +22,107 @@
             <input type="text" class="form-control" id="surname" name="surname" required>
         </div>
 
+        <!-- Numer telefonu -->
+        <div class="mb-3">
+            <label for="phone" class="form-label">Numer telefonu</label>
+            <input type="tel" class="form-control" id="phone" name="phone" required 
+                   pattern="[0-9+\s-]+" 
+                   title="Wprowadź poprawny numer telefonu (cyfry, +, spacje i myślniki)"
+                   placeholder="np. +48 123-456-789">
+        </div>
+
+        <!-- Email -->
+        <div class="mb-3">
+            <label for="email" class="form-label">Adres email</label>
+            <input type="email" class="form-control" id="email" name="email" required
+                   placeholder="np. jan.kowalski@firma.pl">
+        </div>
+
         <!-- 2. Doświadczenie jako PM (suwak) -->
         <label for="experience_pm">Doświadczenie jako PM (w latach)</label>
-        <input type="range" class="form-range"
+        <input type="range" class="form-range custom-range"
                id="experience_pm"
                name="experience_pm"
                min="0" max="50" step="1"
-               value="5"
-               oninput="document.getElementById('expValue').textContent = this.value">
+               value="{{ request.form.get('experience_pm', '0') }}"
+               oninput="validateAndUpdateExperience()">
         <div>
-          Wybrane: <span id="expValue">5</span> lat
+          Wybrane: <span id="expValue">{{ request.form.get('experience_pm', '0') }}</span> lat
         </div>
 
         <!-- 3. Doświadczenie jako PM w IT (suwak) -->
         <label for="experience_pm_it">Doświadczenie jako PM w IT (w latach)</label>
-        <input type="range" class="form-range"
+        <input type="range" class="form-range custom-range"
                id="experience_pm_it"
                name="experience_pm_it"
                min="0" max="50" step="1"
-               value="5"
-               oninput="document.getElementById('expValueIT').textContent = this.value">
+               value="{{ request.form.get('experience_pm_it', '0') }}"
+               oninput="validateAndUpdateExperience()">
         <div>
-          Wybrane: <span id="expValueIT">5</span> lat
+          Wybrane: <span id="expValueIT">{{ request.form.get('experience_pm_it', '0') }}</span> lat
+          <div id="experienceError" class="text-danger" style="display: none;">
+            Doświadczenie jako PM w IT nie może być większe niż całkowite doświadczenie jako PM
+          </div>
         </div>
+
+        <style>
+        .custom-range::-webkit-slider-thumb {
+            background: #000000;
+        }
+        .custom-range::-moz-range-thumb {
+            background: #000000;
+        }
+        .custom-range::-ms-thumb {
+            background: #000000;
+        }
+        .custom-range::-webkit-slider-runnable-track {
+            background: #ffffff;
+            border: 1px solid #cccccc;
+        }
+        .custom-range::-moz-range-track {
+            background: #ffffff;
+            border: 1px solid #cccccc;
+        }
+        .custom-range::-ms-track {
+            background: #ffffff;
+            border: 1px solid #cccccc;
+        }
+        </style>
+
+        <script>
+        function validateAndUpdateExperience() {
+            const totalExpInput = document.getElementById('experience_pm');
+            const itExpInput = document.getElementById('experience_pm_it');
+            const errorDiv = document.getElementById('experienceError');
+            const expValue = document.getElementById('expValue');
+            const expValueIT = document.getElementById('expValueIT');
+            
+            const totalExpNum = parseInt(totalExpInput.value);
+            const itExpNum = parseInt(itExpInput.value);
+            
+            // Update displayed values
+            expValue.textContent = totalExpNum;
+            expValueIT.textContent = itExpNum;
+            
+            // Validate and show/hide error
+            if (itExpNum > totalExpNum) {
+                errorDiv.style.display = 'block';
+                errorDiv.style.color = '#dc3545';
+                itExpInput.style.borderColor = '#dc3545';
+                // Automatically adjust IT experience to match total experience
+                itExpInput.value = totalExpNum;
+                expValueIT.textContent = totalExpNum;
+            } else {
+                errorDiv.style.display = 'none';
+                itExpInput.style.borderColor = '';
+            }
+        }
+        
+        // Initialize validation on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            validateAndUpdateExperience();
+        });
+        </script>
 
         <!-- KONTYNENT -->
         <div class="mb-3">
@@ -51,7 +135,7 @@
         <!-- PAŃSTWO (zależne od kontynentu) -->
         <div class="mb-3">
             <label for="countrySelect" class="form-label">Państwo</label>
-            <select id="countrySelect" class="form-select" name="country" onchange="updateRegions()" required>
+            <select id="countrySelect" class="form-select" name="country" onchange="updateRegions()">
                 <option value="">-- Najpierw wybierz kontynent --</option>
             </select>
         </div>
@@ -75,6 +159,7 @@
             <label for="level_seniority" class="form-label">Level of seniority</label>
             <select class="form-select" name="level_seniority" id="level_seniority" required>
                 <option value="">-- Wybierz poziom --</option>
+                <option value="Nie dotyczy">Nie dotyczy</option>
                 <option value="Junior">Junior</option>
                 <option value="Mid">Mid</option>
                 <option value="Senior">Senior</option>
@@ -295,6 +380,7 @@
             <label for="remote_on_site" class="form-label">Preferowany tryb pracy</label>
             <select class="form-select" name="remote_on_site" id="remote_on_site" required>
                 <option value="">-- Wybierz tryb --</option>
+                <option value="Obojętnie">Obojętnie</option>
                 <option value="Remote">Remote (zdalnie)</option>
                 <option value="On-site">On-site (na miejscu)</option>
                 <option value="Hybrid">Hybrid (hybrydowo)</option>
@@ -315,12 +401,214 @@
 
 <!-- Skrypt JavaScript z definicją 3-poziomowego cascading dropdown -->
 <script>
-    // 1. Struktura: CONTINENT -> obiekt KRAJE -> tablica REGIONÓW lub null
-    // Przykładowo:
+    // Definicja języków i poziomów CEFR
+    const ALL_LANGUAGES = [
+        "Angielski",
+        "Chiński, Mandaryński",
+        "Hindi",
+        "Hiszpański",
+        "Francuski",
+        "Arabski, Standardowy",
+        "Bengalski",
+        "Rosyjski",
+        "Portugalski",
+        "Indonezyjski",
+        "Urdu",
+        "Niemiecki, Standardowy",
+        "Japoński",
+        "Suahili",
+        "Marathi",
+        "Telugu",
+        "Pendżabski, Zachodni",
+        "Chiński, Wu",
+        "Tamil",
+        "Turecki",
+        "Koreański",
+        "Wietnamski",
+        "Chiński, Yue",
+        "Jawajski",
+        "Włoski",
+        "Arabski, Egipski Mówiony",
+        "Hausa",
+        "Tajski",
+        "Gudżarati",
+        "Kannada",
+        "Perski, Irański",
+        "Bhojpuri",
+        "Chiński, Min Nan",
+        "Chiński, Hakka",
+        "Chiński, Jinyu",
+        "Filipiński",
+        "Birmański",
+        "Polski",
+        "Joruba",
+        "Odia",
+        "Malajalam",
+        "Chiński, Xiang",
+        "Maithili",
+        "Ukraiński",
+        "Arabski, Marokański Mówiony",
+        "Pendżabski, Wschodni",
+        "Sunda",
+        "Arabski, Algierski Mówiony",
+        "Arabski, Sudański Mówiony",
+        "Pidżyn, Nigeryjski",
+        "Zulu",
+        "Igbo",
+        "Amharski",
+        "Uzbecki, Północny",
+        "Sindhi",
+        "Arabski, Lewantyński Północny Mówiony",
+        "Nepalski",
+        "Rumuński",
+        "Tagalog",
+        "Holenderski",
+        "Arabski, Sa'idzi Mówiony",
+        "Chiński, Gan",
+        "Paszto, Północny",
+        "Magahi",
+        "Saraiki",
+        "Xhosa",
+        "Malajski",
+        "Khmer",
+        "Afrikaans",
+        "Syngaleski",
+        "Somalijski",
+        "Chhattisgarhi",
+        "Cebuano",
+        "Arabski, Mezopotamski Mówiony",
+        "Asamski",
+        "Tajski, Północno-Wschodni",
+        "Kurdyjski, Północny",
+        "Arabski, Hidżazyjski Mówiony",
+        "Fulfulde, Nigeryjski",
+        "Bawarski",
+        "Bamanankan",
+        "Azerski, Południowy",
+        "Sotho, Północny",
+        "Setswana",
+        "Sotho, Południowy",
+        "Czeski",
+        "Grecki",
+        "Chittagonian",
+        "Kazachski",
+        "Szwedzki",
+        "Deccan",
+        "Węgierski",
+        "Jula",
+        "Sadri",
+        "Kiniaruanda",
+        "Pidżyn, Kameruński",
+        "Sylheti",
+        "Arabski, Lewantyński Południowy Mówiony",
+        "Arabski, Tunezyjski Mówiony",
+        "Arabski, Sanański Mówiony",
+        "Suahili, Kongo",
+        "Chiński, Min Bei",
+        "Paszto, Południowy",
+        "Rangpuri",
+        "Rundi",
+        "Arabski, Ta'izzi-Adeni Mówiony",
+        "Ujgurski",
+        "Chiński, Min Dong",
+        "Koongo",
+        "Ibibio",
+        "Haryanvi",
+        "Arabski, Zatoki Perskiej Mówiony",
+        "Chichewa",
+        "Kanauji",
+        "Hebrajski",
+        "Akan",
+        "Azerski, Północny",
+        "Kataloński",
+        "Szona",
+        "Dari",
+        "Oromo, Zachodni Środkowy",
+        "Tsonga",
+        "Hassaniyya",
+        "Serbski",
+        "Arabski, Mezopotamski Północny Mówiony",
+        "Bułgarski",
+        "Sukuma",
+        "Tadżycki",
+        "Marwari",
+        "Wenecki",
+        "Kanuri, Yerwa",
+        "Mòoré",
+        "Madurski",
+        "Tigrińska",
+        "Santhali",
+        "Kreolski haitański",
+        "Malagaski, Płaskowyż",
+        "Słowacki",
+        "Tachelhit",
+        "Luba-Kasai",
+        "Varhadi-Nagpuri",
+        "Kaszmirski",
+        "Turkmeński",
+        "Chorwacki",
+        "Gikuyu",
+        "Ganda",
+        "Paszto, Centralny",
+        "Ilokano",
+        "Fiński",
+        "Hiligaynon",
+        "Gwarani, Paragwajski",
+        "Tajski, Północny",
+        "Umbundu",
+        "Krio",
+        "Niemiecki, Szwajcarski",
+        "Napoletański-Kalabryjski",
+        "Duński",
+        "Bundeli",
+        "Kabyle",
+        "Malvi",
+        "Pular",
+        "Norweski",
+        "Wolof",
+        "Sango",
+        "Lambadi",
+        "Tatarski",
+        "Sanskryt",
+        "Ghanański Pidżyn Angielski",
+        "Betawi",
+        "Kituba",
+        "Arabski, Libijski Mówiony",
+        "Kirgiski",
+        "Swati",
+        "Tamazight, Środkowy Atlas",
+        "Sycylijski",
+        "Ewe",
+        "Baoulé",
+        "Chiński, Huizhou",
+        "Arabski, Hadrami Mówiony",
+        "Oromo, Wschodni",
+        "Kurdyjski, Centralny",
+        "Laotański",
+        "Tajski, Południowy",
+        "Kamba",
+        "Pulaar",
+        "Awadhi",
+        "Tarifit",
+        "Uzbecki, Południowy",
+        "Minangkabau",
+        "Dholuo",
+        "Mewari",
+        "Arabski, Nadżdyjski Mówiony",
+        "Tok Pisin",
+        "Bemba",
+        "Indyjski Język Migowy",
+        "Balochi, Południowy",
+        "Bugis",
+        "Tiv",
+        "Oromo, Borana"
+    ];
+
+    const CEFR_LEVELS = ["A1","A2","B1","B2","C1","C2"];
+
+    // Definicja danych kontynentów, krajów i regionów
     const continentsData = {
         "Europa": {
-            // 1. Poprawione i uzupełnione kraje już istniejące w obiekcie:
-
             "Polska": [
                 "Dolnośląskie",
                 "Kujawsko-Pomorskie",
@@ -399,9 +687,6 @@
                 "Ceuta",
                 "Melilla"
             ],
-
-            // 2. Pozostałe kraje Europy (w porządku alfabetycznym):
-
             "Albania": [
                 "Berat",
                 "Dibër",
@@ -945,10 +1230,6 @@
                 "Wenecja Euganejska"
             ]
         },
-
-        // Pozostawiamy dane z pozostałych kontynentów,
-        // rozszerzając tylko część dla Europy, zgodnie z prośbą.
-
         "Ameryka Północna": {
             "USA": ["California", "Texas", "New York", "Florida"],
             "Kanada": null,
@@ -958,302 +1239,490 @@
             "Chiny": null,
             "Japonia": null,
             "Indie": null
-        }
-    };
+        },
+        "Ameryka Południowa": {
+        "Brazylia": [
+            "Acre",
+            "Alagoas",
+            "Amapá",
+            "Amazonas",
+            "Bahia",
+            "Ceará",
+            "Distrito Federal",
+            "Espírito Santo",
+            "Goiás",
+            "Maranhão",
+            "Mato Grosso",
+            "Mato Grosso do Sul",
+            "Minas Gerais",
+            "Pará",
+            "Paraíba",
+            "Paraná",
+            "Pernambuco",
+            "Piauí",
+            "Rio de Janeiro",
+            "Rio Grande do Norte",
+            "Rio Grande do Sul",
+            "Rondônia",
+            "Roraima",
+            "Santa Catarina",
+            "São Paulo",
+            "Sergipe",
+            "Tocantins"
+        ],
+        "Argentyna": [
+            "Buenos Aires (prowincja)",
+            "Buenos Aires (miasto)",
+            "Catamarca",
+            "Chaco",
+            "Chubut",
+            "Córdoba",
+            "Corrientes",
+            "Entre Ríos",
+            "Formosa",
+            "Jujuy",
+            "La Pampa",
+            "La Rioja",
+            "Mendoza",
+            "Misiones",
+            "Neuquén",
+            "Río Negro",
+            "Salta",
+            "San Juan",
+            "San Luis",
+            "Santa Cruz",
+            "Santa Fe",
+            "Santiago del Estero",
+            "Tierra del Fuego",
+            "Tucumán"
+        ],
+        "Kolumbia": [
+            "Amazonas",
+            "Antioquia",
+            "Arauca",
+            "Atlántico",
+            "Bolívar",
+            "Boyacá",
+            "Caldas",
+            "Caquetá",
+            "Casanare",
+            "Cauca",
+            "Cesar",
+            "Chocó",
+            "Córdoba",
+            "Cundinamarca",
+            "Guainía",
+            "Guaviare",
+            "Huila",
+            "La Guajira",
+            "Magdalena",
+            "Meta",
+            "Nariño",
+            "Norte de Santander",
+            "Putumayo",
+            "Quindío",
+            "Risaralda",
+            "San Andrés y Providencia",
+            "Santander",
+            "Sucre",
+            "Tolima",
+            "Valle del Cauca",
+            "Vaupés",
+            "Vichada"
+        ],
+        "Chile": [
+            "Región de Arica y Parinacota",
+            "Región de Tarapacá",
+            "Región de Antofagasta",
+            "Región de Atacama",
+            "Región de Coquimbo",
+            "Región de Valparaíso",
+            "Región Metropolitana de Santiago",
+            "Región del Libertador General Bernardo O'Higgins",
+            "Región del Maule",
+            "Región de Ñuble",
+            "Región de la Araucanía",
+            "Región de los Ríos",
+            "Región de los Lagos",
+            "Región de Aysén del General Carlos Ibáñez del Campo",
+            "Región de Magallanes y de la Antártica Chilena"
+        ],
+        "Peru": [
+            "Amazonas",
+            "Áncash",
+            "Apurímac",
+            "Arequipa",
+            "Ayacucho",
+            "Cajamarca",
+            "Callao",
+            "Cusco",
+            "Huancavelica",
+            "Huánuco",
+            "Ica",
+            "Junín",
+            "La Libertad",
+            "Lambayeque",
+            "Lima",
+            "Loreto",
+            "Madre de Dios",
+            "Moquegua",
+            "Pasco",
+            "Piura",
+            "Puno",
+            "San Martín",
+            "Tacna",
+            "Tumbes",
+            "Ucayali"
+        ],
+        "Wenezuela": [
+            "Amazonas",
+            "Anzoátegui",
+            "Apure",
+            "Aragua",
+            "Barinas",
+            "Bolívar",
+            "Carabobo",
+            "Cojedes",
+            "Delta Amacuro",
+            "Distrito Capital",
+            "Falcón",
+            "Guárico",
+            "La Guaira",
+            "Lara",
+            "Mérida",
+            "Miranda",
+            "Monagas",
+            "Nueva Esparta",
+            "Portuguesa",
+            "Sucre",
+            "Táchira",
+            "Trujillo",
+            "Vargas",
+            "Yaracuy",
+            "Zulia"
+        ],
+        "Ekwador": [
+            "Azuay",
+            "Bolívar",
+            "Cañar",
+            "Carchi",
+            "Chimborazo",
+            "Cotopaxi",
+            "El Oro",
+            "Esmeraldas",
+            "Galápagos",
+            "Guayas",
+            "Imbabura",
+            "Loja",
+            "Los Ríos",
+            "Manabí",
+            "Morona Santiago",
+            "Napo",
+            "Orellana",
+            "Pastaza",
+            "Pichincha",
+            "Santa Elena",
+            "Santo Domingo de los Tsáchilas",
+            "Sucumbíos",
+            "Tungurahua",
+            "Zamora Chinchipe"
+        ],
+        "Boliwia": [
+            "Beni",
+            "Chuquisaca",
+            "Cochabamba",
+            "La Paz",
+            "Oruro",
+            "Pando",
+            "Potosí",
+            "Santa Cruz",
+            "Tarija"
+        ],
+        "Paragwaj": [
+            "Alto Paraguay",
+            "Alto Paraná",
+            "Amambay",
+            "Asunción (miasto)",
+            "Boquerón",
+            "Caaguazú",
+            "Caazapá",
+            "Canindeyú",
+            "Central",
+            "Concepción",
+            "Cordillera",
+            "Guairá",
+            "Itapúa",
+            "Misiones",
+            "Ñeembucú",
+            "Paraguarí",
+            "Presidente Hayes",
+            "San Pedro"
+        ],
+        "Urugwaj": [
+            "Artigas",
+            "Canelones",
+            "Cerro Largo",
+            "Colonia",
+            "Durazno",
+            "Flores",
+            "Florida",
+            "Lavalleja",
+            "Maldonado",
+            "Montevideo",
+            "Paysandú",
+            "Río Negro",
+            "Rivera",
+            "Rocha",
+            "Salto",
+            "San José",
+            "Soriano",
+            "Tacuarembó",
+            "Treinta y Tres"
+        ],
+        "Gujana": null,
+        "Surinam": null
+    },
+    "Afryka": {
+        "Nigeria": [
+            "Abia",
+            "Adamawa",
+            "Akwa Ibom",
+            "Anambra",
+            "Bauchi",
+            "Bayelsa",
+            "Benue",
+            "Borno",
+            "Cross River",
+            "Delta",
+            "Ebonyi",
+            "Edo",
+            "Ekiti",
+            "Enugu",
+            "Gombe",
+            "Imo",
+            "Jigawa",
+            "Kaduna",
+            "Kano",
+            "Katsina",
+            "Kebbi",
+            "Kogi",
+            "Kwara",
+            "Lagos",
+            "Nasarawa",
+            "Niger",
+            "Ogun",
+            "Ondo",
+            "Osun",
+            "Oyo",
+            "Plateau",
+            "Rivers",
+            "Sokoto",
+            "Taraba",
+            "Yobe",
+            "Zamfara",
+            "FCT" // Federal Capital Territory
+        ],
+        "Republika Południowej Afryki": [
+            "Eastern Cape",
+            "Free State",
+            "Gauteng",
+            "KwaZulu-Natal",
+            "Limpopo",
+            "Mpumalanga",
+            "Northern Cape",
+            "North West",
+            "Western Cape"
+        ],
+        "Egipt": [
+            "Al Iskandariyah",
+            "Al Qahirah",
+            "Ad Daqahliyah",
+            "Al Gharbiyah",
+            "Al Minufiyah",
+            "Al Qalyubiyah",
+            "Ash Sharqiyah",
+            "Giza",
+            "Dakahlia",
+            "Matruh",
+            "Sina Północny",
+            "Sina Południowy",
+            "Al Fayyum",
+            "Beni Suef",
+            "Al Minya",
+            "Asyut",
+            "Suhaj",
+            "Qena",
+            "Aswan",
+            "Luxor",
+            "Red Sea",
+            "New Valley"
+        ],
+        "Kenia": [
+            "Baringo",
+            "Bomet",
+            "Bungoma",
+            "Busia",
+            "Elgeyo-Marakwet",
+            "Embu",
+            "Garissa",
+            "Homa Bay",
+            "Isiolo",
+            "Kajiado",
+            "Kakamega",
+            "Kericho",
+            "Kiambu",
+            "Kilifi",
+            "Kirinyaga",
+            "Kisii",
+            "Kisumu",
+            "Kitui",
+            "Kwale",
+            "Laikipia",
+            "Lamu",
+            "Machakos",
+            "Makueni",
+            "Mandera",
+            "Marsabit",
+            "Meru",
+            "Migori",
+            "Mombasa",
+            "Murang'a",
+            "Nairobi",
+            "Nakuru",
+            "Nandi",
+            "Narok",
+            "Nyamira",
+            "Nyandarua",
+            "Nyeri",
+            "Samburu",
+            "Siaya",
+            "Taita-Taveta",
+            "Tana River",
+            "Tharaka-Nithi",
+            "Trans Nzoia",
+            "Turkana",
+            "Uasin Gishu",
+            "Vihiga",
+            "Wajir",
+            "West Pokot"
+        ],
+        // Możesz dodać kolejne kraje Afryki analogicznie...
+    },
+    "Australia i Oceania": {
+        "Australia": [
+            "Nowa Południowa Walia",
+            "Wiktoria",
+            "Queensland",
+            "Australia Południowa",
+            "Australia Zachodnia",
+            "Terytorium Stołeczne",
+            "Tasmania",
+            "Terytorium Północne"
+        ],
+        "Nowa Zelandia": [
+            "Auckland",
+            "Bay of Plenty",
+            "Canterbury",
+            "Gisborne",
+            "Hawke's Bay",
+            "Manawatū-Whanganui",
+            "Marlborough",
+            "Nelson",
+            "Northland",
+            "Otago",
+            "Southland",
+            "Taranaki",
+            "Tasman",
+            "Waikato",
+            "Wellington"
+        ],
+        "Papua-Nowa Gwinea": null,
+        "Fidżi": null,
+        "Samoa": null,
+        "Tonga": null,
+        "Vanuatu": null,
+        "Wyspy Salomona": null
+    },
+    "Antarktyda": null
+};
 
-    // 2. Wypełniamy listę kontynentów przy starcie
-    function populateContinents() {
-        const continentSelect = document.getElementById('continentSelect');
-        for (const continentName in continentsData) {
-            const opt = document.createElement('option');
-            opt.value = continentName;
-            opt.textContent = continentName;
-            continentSelect.appendChild(opt);
-        }
-    }
 
-    // 3. Po wybraniu kontynentu, ładujemy kraje w <select id="countrySelect">
+    // Funkcje do obsługi formularza
     function updateCountries() {
         const continentSelect = document.getElementById('continentSelect');
-        const selectedContinent = continentSelect.value;
-
         const countrySelect = document.getElementById('countrySelect');
-        countrySelect.innerHTML = ""; // czyścimy stare option
-
-        // Czyścimy regiony
-        const regionSelect = document.getElementById('regionSelect');
-        regionSelect.innerHTML = "";
-        regionSelect.appendChild(new Option("-- Najpierw wybierz państwo --", ""));
-
-        if (!selectedContinent) {
-            countrySelect.appendChild(new Option("-- Najpierw wybierz kontynent --", ""));
-            return;
+        const selectedContinent = continentSelect.value;
+        
+        // Clear current options
+        countrySelect.innerHTML = '<option value="">-- Wybierz kraj --</option>';
+        
+        // Special handling for Antarctica
+        if (selectedContinent === "Antarktyda") {
+            countrySelect.removeAttribute('required');
+            const option = document.createElement('option');
+            option.value = "Brak państw";
+            option.textContent = "Brak państw";
+            countrySelect.appendChild(option);
+            countrySelect.value = "Brak państw";
+        } else {
+            countrySelect.setAttribute('required', '');
+            if (selectedContinent && continentsData[selectedContinent]) {
+                const countries = Object.keys(continentsData[selectedContinent]);
+                countries.forEach(country => {
+                    const option = document.createElement('option');
+                    option.value = country;
+                    option.textContent = country;
+                    countrySelect.appendChild(option);
+                });
+            }
         }
-
-        // Mamy wybrany kontynent - wczytujemy jego kraje
-        const countriesObj = continentsData[selectedContinent];
-        countrySelect.appendChild(new Option("-- Wybierz państwo --", ""));
-
-        for (const countryName in countriesObj) {
-            const opt = document.createElement('option');
-            opt.value = countryName;
-            opt.textContent = countryName;
-            countrySelect.appendChild(opt);
-        }
+        
+        // Reset regions
+        updateRegions();
     }
 
-    // 4. Po wybraniu kraju, wypełniamy listę regionów (o ile kraj ma regiony != null)
     function updateRegions() {
         const continentSelect = document.getElementById('continentSelect');
-        const selectedContinent = continentSelect.value;
-
         const countrySelect = document.getElementById('countrySelect');
-        const selectedCountry = countrySelect.value;
-
         const regionSelect = document.getElementById('regionSelect');
-        regionSelect.innerHTML = "";
-
-        if (!selectedCountry) {
-            regionSelect.appendChild(new Option("-- Najpierw wybierz państwo --", ""));
-            return;
-        }
-
-        const countriesObj = continentsData[selectedContinent];
-        const regionArray = countriesObj[selectedCountry]; // np. ["Mazowieckie", "Małopolskie"] lub null
-
-        if (regionArray && Array.isArray(regionArray)) {
-            regionSelect.appendChild(new Option("-- Wybierz region --", ""));
-            regionArray.forEach(region => {
-                const opt = document.createElement('option');
-                opt.value = region;
-                opt.textContent = region;
-                regionSelect.appendChild(opt);
-            });
-        } else {
-            // Nie ma regionów dla danego kraju
-            regionSelect.appendChild(new Option("Brak regionów do wyboru", ""));
+        const selectedContinent = continentSelect.value;
+        const selectedCountry = countrySelect.value;
+        
+        // Clear current options
+        regionSelect.innerHTML = '<option value="">-- Wybierz region --</option>';
+        
+        if (selectedContinent && selectedCountry && 
+            continentsData[selectedContinent] && 
+            continentsData[selectedContinent][selectedCountry]) {
+            const regions = continentsData[selectedContinent][selectedCountry];
+            if (regions) {
+                regions.forEach(region => {
+                    const option = document.createElement('option');
+                    option.value = region;
+                    option.textContent = region;
+                    regionSelect.appendChild(option);
+                });
+            }
         }
     }
 
-    // 5. Gdy załaduje się strona, wypełniamy listę kontynentów
-    document.addEventListener('DOMContentLoaded', () => {
-        populateContinents();
+    // Initialize continents dropdown
+    document.addEventListener('DOMContentLoaded', function() {
+        const continentSelect = document.getElementById('continentSelect');
+        const continents = Object.keys(continentsData);
+        
+        // Clear and add default option
+        continentSelect.innerHTML = '<option value="">-- Wybierz kontynent --</option>';
+        
+        continents.forEach(continent => {
+            const option = document.createElement('option');
+            option.value = continent;
+            option.textContent = continent;
+            continentSelect.appendChild(option);
+        });
     });
 
-
-
-        // Lista języków – przykładowo 5, ale możesz dopisać wszystkie ~200
-        const ALL_LANGUAGES = [
-        "Angielski",
-"Chiński, Mandaryński",
-"Hindi",
-"Hiszpański",
-"Francuski",
-"Arabski, Standardowy",
-"Bengalski",
-"Rosyjski",
-"Portugalski",
-"Indonezyjski",
-"Urdu",
-"Niemiecki, Standardowy",
-"Japoński",
-"Suahili",
-"Marathi",
-"Telugu",
-"Pendżabski, Zachodni",
-"Chiński, Wu",
-"Tamil",
-"Turecki",
-"Koreański",
-"Wietnamski",
-"Chiński, Yue",
-"Jawajski",
-"Włoski",
-"Arabski, Egipski Mówiony",
-"Hausa",
-"Tajski",
-"Gudżarati",
-"Kannada",
-"Perski, Irański",
-"Bhojpuri",
-"Chiński, Min Nan",
-"Chiński, Hakka",
-"Chiński, Jinyu",
-"Filipiński",
-"Birmański",
-"Polski",
-"Joruba",
-"Odia",
-"Malajalam",
-"Chiński, Xiang",
-"Maithili",
-"Ukraiński",
-"Arabski, Marokański Mówiony",
-"Pendżabski, Wschodni",
-"Sunda",
-"Arabski, Algierski Mówiony",
-"Arabski, Sudański Mówiony",
-"Pidżyn, Nigeryjski",
-"Zulu",
-"Igbo",
-"Amharski",
-"Uzbecki, Północny",
-"Sindhi",
-"Arabski, Lewantyński Północny Mówiony",
-"Nepalski",
-"Rumuński",
-"Tagalog",
-"Holenderski",
-"Arabski, Sa'idzi Mówiony",
-"Chiński, Gan",
-"Paszto, Północny",
-"Magahi",
-"Saraiki",
-"Xhosa",
-"Malajski",
-"Khmer",
-"Afrikaans",
-"Syngaleski",
-"Somalijski",
-"Chhattisgarhi",
-"Cebuano",
-"Arabski, Mezopotamski Mówiony",
-"Asamski",
-"Tajski, Północno-Wschodni",
-"Kurdyjski, Północny",
-"Arabski, Hidżazyjski Mówiony",
-"Fulfulde, Nigeryjski",
-"Bawarski",
-"Bamanankan",
-"Azerski, Południowy",
-"Sotho, Północny",
-"Setswana",
-"Sotho, Południowy",
-"Czeski",
-"Grecki",
-"Chittagonian",
-"Kazachski",
-"Szwedzki",
-"Deccan",
-"Węgierski",
-"Jula",
-"Sadri",
-"Kiniaruanda",
-"Pidżyn, Kameruński",
-"Sylheti",
-"Arabski, Lewantyński Południowy Mówiony",
-"Arabski, Tunezyjski Mówiony",
-"Arabski, Sanański Mówiony",
-"Suahili, Kongo",
-"Chiński, Min Bei",
-"Paszto, Południowy",
-"Rangpuri",
-"Rundi",
-"Arabski, Ta'izzi-Adeni Mówiony",
-"Ujgurski",
-"Chiński, Min Dong",
-"Koongo",
-"Ibibio",
-"Haryanvi",
-"Arabski, Zatoki Perskiej Mówiony",
-"Chichewa",
-"Kanauji",
-"Hebrajski",
-"Akan",
-"Azerski, Północny",
-"Kataloński",
-"Szona",
-"Dari",
-"Oromo, Zachodni Środkowy",
-"Tsonga",
-"Hassaniyya",
-"Serbski",
-"Arabski, Mezopotamski Północny Mówiony",
-"Bułgarski",
-"Sukuma",
-"Tadżycki",
-"Marwari",
-"Wenecki",
-"Kanuri, Yerwa",
-"Mòoré",
-"Madurski",
-"Tigrińska",
-"Santhali",
-"Kreolski haitański",
-"Malagaski, Płaskowyż",
-"Słowacki",
-"Tachelhit",
-"Luba-Kasai",
-"Varhadi-Nagpuri",
-"Kaszmirski",
-"Turkmeński",
-"Chorwacki",
-"Gikuyu",
-"Ganda",
-"Paszto, Centralny",
-"Ilokano",
-"Fiński",
-"Hiligaynon",
-"Gwarani, Paragwajski",
-"Tajski, Północny",
-"Umbundu",
-"Krio",
-"Niemiecki, Szwajcarski",
-"Napoletański-Kalabryjski",
-"Duński",
-"Bundeli",
-"Kabyle",
-"Malvi",
-"Pular",
-"Norweski",
-"Wolof",
-"Sango",
-"Lambadi",
-"Tatarski",
-"Sanskryt",
-"Ghanański Pidżyn Angielski",
-"Betawi",
-"Kituba",
-"Arabski, Libijski Mówiony",
-"Kirgiski",
-"Swati",
-"Tamazight, Środkowy Atlas",
-"Sycylijski",
-"Ewe",
-"Baoulé",
-"Chiński, Huizhou",
-"Arabski, Hadrami Mówiony",
-"Oromo, Wschodni",
-"Kurdyjski, Centralny",
-"Laotański",
-"Tajski, Południowy",
-"Kamba",
-"Pulaar",
-"Awadhi",
-"Tarifit",
-"Uzbecki, Południowy",
-"Minangkabau",
-"Dholuo",
-"Mewari",
-"Arabski, Nadżdyjski Mówiony",
-"Tok Pisin",
-"Bemba",
-"Indyjski Język Migowy",
-"Balochi, Południowy",
-"Bugis",
-"Tiv",
-"Oromo, Borana"
-
-
-        ];
-
-        // Lista poziomów w skali CEFR
-        const CEFR_LEVELS = ["A1","A2","B1","B2","C1","C2"];
-
-        /**
-        * Funkcja dodaje nowy "wiersz" (select języka + select poziomu) do kontenera #languagesContainer
-        */
-        function addLanguageRow() {
+    function addLanguageRow() {
         const container = document.getElementById('languagesContainer');
 
         // Główny div wiersza
@@ -1262,7 +1731,7 @@
 
         // Select do wyboru języka
         const langSelect = document.createElement('select');
-        langSelect.name = "language[]";  // [] pozwala wysłać wiele wartości do backendu
+        langSelect.name = "language[]";
         langSelect.classList.add('form-select', 'w-auto');
 
         // Dodaj placeholder
@@ -1273,11 +1742,11 @@
 
         // Dodaj wszystkie języki
         ALL_LANGUAGES.forEach(lang => {
-        const option = document.createElement('option');
-        option.value = lang;
-        option.textContent = lang;
-        langSelect.appendChild(option);
-    });
+            const option = document.createElement('option');
+            option.value = lang;
+            option.textContent = lang;
+            langSelect.appendChild(option);
+        });
 
         // Select do wyboru poziomu
         const levelSelect = document.createElement('select');
@@ -1292,11 +1761,11 @@
 
         // Dodaj poziomy CEFR
         CEFR_LEVELS.forEach(l => {
-        const option = document.createElement('option');
-        option.value = l;
-        option.textContent = l;
-        levelSelect.appendChild(option);
-    });
+            const option = document.createElement('option');
+            option.value = l;
+            option.textContent = l;
+            levelSelect.appendChild(option);
+        });
 
         // Przycisk "Usuń" wiersz
         const removeBtn = document.createElement('button');
@@ -1313,8 +1782,6 @@
         // Wstaw rowDiv do kontenera
         container.appendChild(rowDiv);
     }
-
-
 </script>
 
 {% endblock %}

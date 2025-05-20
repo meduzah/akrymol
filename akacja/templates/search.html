@@ -3,114 +3,243 @@
 {% block title %}Wyszukiwarka{% endblock %}
 
 {% block content %}
-<h1 class="mb-4">
-  <i class="bi bi-search"></i> Wyszukiwarka Project Managerów
-</h1>
+<div class="container py-4" style="background-color: #c8d8e4; border-radius: 10px;">
+  <h1 class="mb-4 text-primary">
+    <i class="bi bi-search"></i> Wyszukiwarka Project Managerów
+  </h1>
 
-<form method="GET" action="/search">
-  <div class="row">
-    <!-- Seniority -->
-    <div class="col-md-3">
-      <label for="level_seniority" class="form-label">Seniority</label>
-      <select class="form-select" id="level_seniority" name="level_seniority">
-        <option value="">Dowolne</option>
-        <option value="Junior">Junior</option>
-        <option value="Mid">Mid</option>
-        <option value="Senior">Senior</option>
-      </select>
+  <form method="GET" action="/search">
+    <div class="row">
+      <!-- Dane osobowe -->
+      <div class="col-md-3">
+        <label for="name" class="form-label text-primary">Imię</label>
+        <input type="text" class="form-control border-primary" id="name" name="name" placeholder="Imię">
+      </div>
+      
+      <div class="col-md-3">
+        <label for="surname" class="form-label text-primary">Nazwisko</label>
+        <input type="text" class="form-control border-primary" id="surname" name="surname" placeholder="Nazwisko">
+      </div>
+      
+      <div class="col-md-3">
+        <label for="email" class="form-label text-primary">Email</label>
+        <input type="email" class="form-control border-primary" id="email" name="email" placeholder="przykład@example.com">
+      </div>
+      
+      <div class="col-md-3">
+        <label for="phone" class="form-label text-primary">Numer telefonu</label>
+        <input type="text" class="form-control border-primary" id="phone" name="phone" placeholder="+48 123 456 789">
+      </div>
     </div>
 
-    <!-- Lokalizacja -->
-    <div class="col-md-3">
-      <label for="location" class="form-label">Lokalizacja</label>
-      <input type="text" class="form-control" id="location" name="location" placeholder="Kraj lub region">
+    <div class="row mt-3">
+      <!-- Doświadczenie -->
+      <div class="col-md-3">
+        <label for="experience_pm_min" class="form-label text-primary">Doświadczenie jako PM (min lat)</label>
+        <input type="number" class="form-control border-primary" id="experience_pm_min" name="experience_pm_min" min="0" placeholder="Min lat">
+      </div>
+
+     
+
+      <div class="col-md-3">
+        <label for="experience_pm_it_min" class="form-label text-primary">Doświadczenie w IT (min lat)</label>
+        <input type="number" class="form-control border-primary" id="experience_pm_it_min" name="experience_pm_it_min" min="0" placeholder="Min lat">
+      </div>
+
+
+    <div class="row mt-3">
+      <!-- Seniority -->
+      <div class="col-md-3">
+        <label for="level_seniority" class="form-label text-primary">Seniority</label>
+        <select class="form-select border-primary" id="level_seniority" name="level_seniority">
+          <option value="">Dowolne</option>
+          <option value="Nie dotyczy">Nie dotyczy</option>
+          <option value="Junior">Junior</option>
+          <option value="Mid">Mid</option>
+          <option value="Senior">Senior</option>
+        </select>
+      </div>
+
+      
+      <!-- Kontynent -->
+      <div class="col-md-3">
+        <label for="continent" class="form-label text-primary">Kontynent</label>
+        <input type="text" class="form-control border-primary" id="continent" name="continent" placeholder="Europa, Azja, etc.">
+      </div>
+
+      <!-- Lokalizacja -->
+      <div class="col-md-3">
+        <label for="location" class="form-label text-primary">Lokalizacja</label>
+        <input type="text" class="form-control border-primary" id="location" name="location" placeholder="Kraj lub region">
+      </div>
+
+      <!-- Gotowość do podróży -->
+      <div class="col-md-3">
+        <label class="form-label text-primary">Gotowość do podróży</label>
+        <select class="form-select border-primary" name="travel_ready">
+          <option value="">Dowolne</option>
+          <option value="1">Tak</option>
+          <option value="0">Nie</option>
+        </select>
+      </div>
     </div>
 
-    <!-- Gotowość do podróży -->
-    <div class="col-md-3">
-      <label class="form-label">Gotowość do podróży</label>
-      <select class="form-select" name="travel_ready">
-        <option value="">Dowolne</option>
-        <option value="1">Tak</option>
-        <option value="0">Nie</option>
-      </select>
+    <div class="row mt-3">
+      <!-- Tryb pracy -->
+      <div class="col-md-3">
+        <label class="form-label text-primary">Tryb pracy</label>
+        <select class="form-select border-primary" name="remote_on_site">
+          <option value="">Dowolny</option>
+          <option value="Obojętnie">Obojętnie</option>
+          <option value="Remote">Zdalnie</option>
+          <option value="On-site">Stacjonarnie</option>
+          <option value="Hybrid">Hybrydowo</option>
+        </select>
+      </div>
+
+      <!-- Tylko stacjonarnie -->
+      <div class="col-md-3">
+        <label class="form-label text-primary">Praca wyłącznie stacjonarnie</label>
+        <select class="form-select border-primary" name="stacjonarnie">
+          <option value="">Dowolne</option>
+          <option value="1">Tak</option>
+          <option value="0">Nie</option>
+        </select>
+      </div>
+
+      <!-- Wykształcenie techniczne -->
+      <div class="col-md-3">
+        <label class="form-label text-primary">Wykształcenie techniczne</label>
+        <select class="form-select border-primary" name="technical_ed">
+          <option value="">Dowolne</option>
+          <option value="tak">Tak</option>
+          <option value="nie">Nie</option>
+        </select>
+      </div>
+
+      <!-- Kierunek studiów -->
+      <div class="col-md-3">
+        <label for="field_of_study" class="form-label text-primary">Kierunek studiów</label>
+        <input type="text" class="form-control border-primary" id="field_of_study" name="field_of_study" placeholder="Informatyka, Zarządzanie, etc.">
+      </div>
     </div>
 
-    <!-- Tryb pracy -->
-    <div class="col-md-3">
-      <label class="form-label">Tryb pracy</label>
-      <select class="form-select" name="remote_on_site">
-        <option value="">Dowolny</option>
-        <option value="Remote">Zdalnie</option>
-        <option value="On-site">Stacjonarnie</option>
-        <option value="Hybrid">Hybrydowo</option>
-      </select>
+    <div class="row mt-3">
+      <!-- Narzędzia -->
+      <div class="col-md-4">
+        <label for="tools" class="form-label text-primary">Narzędzia</label>
+        <input type="text" class="form-control border-primary" id="tools" name="tools" placeholder="Jira, Trello, MS Project">
+      </div>
+
+      <!-- Metodologie -->
+      <div class="col-md-4">
+        <label for="methodologies" class="form-label text-primary">Metodologie</label>
+        <input type="text" class="form-control border-primary" id="methodologies" name="methodologies" placeholder="Scrum, Kanban">
+      </div>
+
+      <!-- Języki -->
+      <div class="col-md-4">
+        <label for="languages" class="form-label text-primary">Języki</label>
+        <input type="text" class="form-control border-primary" id="languages" name="languages" placeholder="Angielski, Niemiecki">
+      </div>
     </div>
+
+    <div class="row mt-3">
+      <!-- Certyfikaty -->
+      <div class="col-md-6">
+        <label for="certificates" class="form-label text-primary">Certyfikaty</label>
+        <input type="text" class="form-control border-primary" id="certificates" name="certificates" placeholder="PMP, PRINCE2">
+      </div>
+
+      <!-- Dodatkowe informacje -->
+      <div class="col-md-6">
+        <label for="additional_info" class="form-label text-primary">Dodatkowe informacje</label>
+        <input type="text" class="form-control border-primary" id="additional_info" name="additional_info" placeholder="Słowa kluczowe">
+      </div>
+    </div>
+
+    <button type="submit" class="btn mt-3" style="background-color: #2b6777; color: white">
+      <i class="bi bi-search"></i> Szukaj
+    </button>
+  </form>
+
+  <hr class="my-4" style="border-color: #2b6777">
+
+  <h2 class="text-primary">Wyniki wyszukiwania</h2>
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr style="background-color: #2b6777; color: white">
+          <th>ID</th>
+          <th>Imię i nazwisko</th>
+          <th>Seniority</th>
+          <th>Lokalizacja</th>
+          <th>Podróże?</th>
+          <th>Tryb pracy</th>
+          <th>Akcje</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pm in results %}
+        <tr>
+          <td>{{ pm['id'] }}</td>
+          <td>{{ pm['name'] }} {{ pm['surname'] }}</td>
+          <td>{{ pm['level_seniority'] }}</td>
+          <td>{{ pm['country'] }} / {{ pm['region'] }}</td>
+          <td>
+            {% if pm['travel_ready'] == 1 %}
+              <span class="badge" style="background-color: #52ab98">Tak</span>
+            {% else %}
+              <span class="badge" style="background-color: #52ab98">Nie</span>
+            {% endif %}
+          </td>
+          <td>{{ pm['remote_on_site'] or '---' }}</td>
+          <td>
+            <a href="{{ url_for('pm_details', pm_id=pm['id']) }}" class="btn btn-sm" style="background-color: #52ab98; color: white">
+              <i class="bi bi-eye"></i> Zobacz profil
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
+</div>
+{% endblock %}
 
-  <div class="row mt-3">
-    <!-- Narzędzia -->
-    <div class="col-md-4">
-      <label for="tools" class="form-label">Narzędzia</label>
-      <input type="text" class="form-control" id="tools" name="tools" placeholder="Jira, Trello, MS Project">
-    </div>
+{% block extra_css %}
+<style>
+.text-primary {
+    color: #2b6777 !important;
+}
 
-    <!-- Metodologie -->
-    <div class="col-md-4">
-      <label for="methodologies" class="form-label">Metodologie</label>
-      <input type="text" class="form-control" id="methodologies" name="methodologies" placeholder="Scrum, Kanban">
-    </div>
+.border-primary {
+    border-color: #c8d8e4 !important;
+}
 
-    <!-- Języki -->
-    <div class="col-md-4">
-      <label for="languages" class="form-label">Języki</label>
-      <input type="text" class="form-control" id="languages" name="languages" placeholder="Angielski, Niemiecki">
-    </div>
-  </div>
+.form-control:focus, .form-select:focus {
+    border-color: #52ab98;
+    box-shadow: 0 0 0 0.25rem rgba(82, 171, 152, 0.25);
+}
 
-  <button type="submit" class="btn btn-primary mt-3">
-    <i class="bi bi-search"></i> Szukaj
-  </button>
-</form>
+.table {
+    border-color: #c8d8e4;
+}
 
-<hr>
+.table tbody tr:nth-of-type(odd) {
+    background-color: rgba(200, 216, 228, 0.3);
+}
 
-<h2>Wyniki wyszukiwania</h2>
-<table class="table table-striped">
-  <thead class="table-dark">
-    <tr>
-      <th>ID</th>
-      <th>Imię i nazwisko</th>
-      <th>Seniority</th>
-      <th>Lokalizacja</th>
-      <th>Podróże?</th>
-      <th>Narzędzia</th>
-      <th>Akcje</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for pm in results %}
-    <tr>
-      <td>{{ pm['id'] }}</td>
-      <td>{{ pm['name'] }} {{ pm['surname'] }}</td>
-      <td>{{ pm['level_seniority'] }}</td>
-      <td>{{ pm['country'] }} / {{ pm['region'] }}</td>
-      <td>
-        {% if pm['travel_ready'] == 1 %}
-          <span class="badge bg-success">Tak</span>
-        {% else %}
-          <span class="badge bg-danger">Nie</span>
-        {% endif %}
-      </td>
-      <td>{{ pm['tools'] or '---' }}</td>
-      <td>
-        <a href="{{ url_for('pm_details', pm_id=pm['id']) }}" class="btn btn-sm btn-info">
-          <i class="bi bi-eye"></i> Zobacz profil
-        </a>
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+.table tbody tr:hover {
+    background-color: rgba(82, 171, 152, 0.1);
+}
 
+.form-control, .form-select {
+    background-color: white;
+}
+
+body {
+    background-color: #f2f2f2;
+}
+</style>
 {% endblock %}
